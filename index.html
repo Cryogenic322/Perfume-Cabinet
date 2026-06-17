@@ -1,0 +1,423 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+<meta name="apple-mobile-web-app-capable" content="yes" />
+<meta name="apple-mobile-web-app-title" content="香水收藏室" />
+<meta name="theme-color" content="#F3EDE2" />
+<link rel="manifest" href="manifest.webmanifest" />
+<link rel="icon" type="image/svg+xml" href="icon.svg" />
+<link rel="apple-touch-icon" href="icon.svg" />
+<title>香水收藏室 · The Perfume Cabinet</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;1,400&family=Inter:wght@400;500;600&display=swap" rel="stylesheet" />
+<style>
+  * { box-sizing: border-box; }
+  html, body { margin: 0; padding: 0; }
+  body { background: #F3EDE2; background-image: radial-gradient(circle at 20% 0%, #F8F4EC 0%, #F3EDE2 45%); color: #1A1614; font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; }
+  input, select, button, textarea { font-family: inherit; }
+  .spin { animation: spin 0.8s linear infinite; }
+  @keyframes spin { to { transform: rotate(360deg); } }
+  .wrap { padding: 40px 20px 80px; min-height: 100vh; }
+  .narrow { max-width: 720px; margin: 0 auto; }
+  .wide { max-width: 960px; margin: 0 auto; }
+  .serif { font-family: 'Cormorant Garamond', Georgia, serif; }
+
+  .kicker { font-size: 11px; letter-spacing: 3px; text-transform: uppercase; color: #8A8178; }
+  h1.title { font-family: 'Cormorant Garamond', Georgia, serif; font-size: 46px; font-weight: 600; margin: 0 0 8px; line-height: 1; letter-spacing: -0.5px; }
+  .subtitle { font-size: 14px; color: #6B6258; margin: 0; max-width: 460px; }
+
+  .btn-add { border: none; background: #1A1614; color: #F3EDE2; font-size: 14px; font-weight: 600; padding: 12px 20px; border-radius: 12px; cursor: pointer; display: inline-flex; align-items: center; gap: 7px; }
+
+  .panel { background: #FFFDF9; border: 1px solid #E2D8C7; border-radius: 16px; padding: 20px; box-shadow: 0 1px 2px rgba(60,40,20,0.04); margin-top: 18px; }
+  .w-title { font-family: 'Cormorant Garamond', Georgia, serif; font-size: 22px; font-weight: 600; }
+  .w-sub { font-size: 13px; color: #6B6258; margin-top: 2px; margin-bottom: 14px; }
+  .w-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(100px, 1fr)); gap: 9px; }
+  .chip { display: flex; flex-direction: column; align-items: center; gap: 2px; padding: 12px 8px; border: 1px solid #E2D8C7; border-radius: 12px; background: #FFFDF9; cursor: pointer; }
+  .chip.active { border-color: #C08A3E; background: #C08A3E12; box-shadow: 0 0 0 1px #C08A3E; }
+  .chip .emoji { font-size: 22px; line-height: 1; }
+  .chip .c-label { font-size: 13px; font-weight: 600; color: #1A1614; margin-top: 3px; }
+  .chip .c-sub { font-size: 10px; color: #8A8178; }
+  .hint { font-size: 13px; color: #8A8178; margin-top: 14px; display: flex; align-items: center; gap: 6px; }
+  .wx-err { font-size: 12.5px; color: #6B6258; background: #F3EDE2; border: 1px solid #E2D8C7; border-radius: 10px; padding: 10px 12px; margin-bottom: 12px; line-height: 1.5; }
+  .retry { display: block; margin-top: 8px; border: 1px solid #C08A3E; background: transparent; color: #9C6A1E; font-size: 12px; font-weight: 600; padding: 6px 12px; border-radius: 8px; cursor: pointer; }
+
+  .rec-card { display: flex; gap: 16px; margin-top: 18px; padding-top: 16px; border-top: 1px solid #EFE7DA; }
+  .rec-img { width: 84px; height: 104px; flex-shrink: 0; border-radius: 10px; overflow: hidden; background: #F3EDE2; border: 1px solid #E2D8C7; display: flex; align-items: center; justify-content: center; }
+  .rec-tag { display: inline-flex; align-items: center; gap: 4px; font-size: 10px; letter-spacing: 1.5px; text-transform: uppercase; color: #C08A3E; font-weight: 600; }
+  .rec-name { font-family: 'Cormorant Garamond', Georgia, serif; font-size: 23px; font-weight: 600; line-height: 1.1; margin-top: 3px; }
+  .rec-orig { font-size: 12px; font-style: italic; color: #6B6258; margin-top: 1px; }
+  .rec-reason { font-size: 13px; color: #3A332C; line-height: 1.6; margin: 8px 0 0; }
+  .long-badge { display: inline-block; margin-top: 8px; font-size: 11px; font-weight: 600; color: #6E7A5E; background: #6E7A5E15; border: 1px solid #6E7A5E33; border-radius: 999px; padding: 2px 10px; }
+
+  .rec-list { margin-top: 18px; padding-top: 16px; border-top: 1px solid #EFE7DA; }
+  .rec-head { display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px; }
+  .rec-count { font-size: 11px; color: #8A8178; background: #E2D8C7; border-radius: 999px; padding: 2px 9px; }
+  .rec-row { display: flex; gap: 12px; align-items: flex-start; padding: 11px 0; border-bottom: 1px solid #F1EADD; }
+  .rec-row:last-child { border-bottom: none; }
+  .rl-rank { flex-shrink: 0; width: 24px; height: 24px; border-radius: 999px; background: #C08A3E18; border: 1px solid #C08A3E44; color: #9C6A1E; font-size: 12px; font-weight: 600; display: flex; align-items: center; justify-content: center; margin-top: 1px; }
+  .rl-body { flex: 1; min-width: 0; }
+  .rl-title { font-family: 'Cormorant Garamond', Georgia, serif; font-size: 19px; font-weight: 600; line-height: 1.15; }
+  .rl-orig { font-family: 'Inter', sans-serif; font-size: 12px; font-style: italic; color: #8A8178; font-weight: 400; }
+  .rl-brand { font-size: 10px; letter-spacing: 1.2px; text-transform: uppercase; color: #8A8178; margin-top: 2px; }
+  .rec-hits { margin-top: 6px; font-size: 11px; color: #6B6258; display: flex; flex-wrap: wrap; gap: 4px; align-items: center; }
+  .hit-pill { font-size: 11px; padding: 1px 8px; border-radius: 999px; background: #C08A3E14; border: 1px solid #C08A3E2E; color: #6B5430; }
+  .rl-side { flex-shrink: 0; }
+  .rl-side .long-badge { margin-top: 0; }
+
+  .col-head { margin: 44px auto 16px; display: flex; align-items: baseline; gap: 10px; padding-top: 24px; border-top: 1px solid #E2D8C7; }
+  .col-title { font-family: 'Cormorant Garamond', Georgia, serif; font-size: 24px; font-weight: 600; }
+  .count { font-size: 12px; color: #8A8178; background: #E2D8C7; border-radius: 999px; padding: 2px 9px; }
+  .empty { text-align: center; color: #8A8178; font-size: 14px; padding: 40px 0; }
+
+  .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 18px; }
+  .card { position: relative; background: #FFFDF9; border: 1px solid #E2D8C7; border-radius: 16px; padding: 16px; box-shadow: 0 1px 3px rgba(60,40,20,0.04); }
+  .card-actions { position: absolute; top: 12px; right: 12px; display: flex; gap: 6px; z-index: 2; }
+  .icon-btn { border: none; background: #FFFDF9; border-radius: 8px; padding: 6px; cursor: pointer; color: #8A8178; box-shadow: 0 1px 3px rgba(0,0,0,0.08); display: inline-flex; }
+  .icon-btn.danger { color: #9C5C5C; }
+  .card-img { width: 100%; height: 140px; border-radius: 11px; overflow: hidden; background: #F3EDE2; border: 1px solid #E2D8C7; margin-bottom: 12px; display: flex; align-items: center; justify-content: center; }
+  .c-brand { font-size: 10px; letter-spacing: 1.2px; text-transform: uppercase; color: #8A8178; }
+  .c-name { font-family: 'Cormorant Garamond', Georgia, serif; font-size: 21px; font-weight: 600; line-height: 1.1; margin-top: 2px; }
+  .c-orig { font-size: 12px; font-style: italic; color: #6B6258; margin-top: 1px; }
+  .c-desc { font-size: 12px; color: #6B6258; margin: 8px 0 0; line-height: 1.5; }
+
+  .pyramid { margin-top: 10px; display: flex; flex-direction: column; gap: 7px; }
+  .tier-row { display: flex; gap: 10px; align-items: flex-start; }
+  .tier-head { display: flex; flex-direction: column; align-items: flex-start; min-width: 40px; flex-shrink: 0; }
+  .tier-label { font-family: 'Cormorant Garamond', Georgia, serif; font-size: 15px; line-height: 1; font-weight: 600; }
+  .tier-sub { font-size: 9px; letter-spacing: 1px; color: #8A8178; text-transform: uppercase; margin-top: 2px; }
+  .note-pills { display: flex; flex-wrap: wrap; gap: 5px; }
+  .pill { font-size: 11px; padding: 2px 9px; border-radius: 999px; color: #3A332C; }
+
+  .overlay { position: fixed; inset: 0; background: rgba(26,22,20,0.45); display: flex; align-items: flex-start; justify-content: center; padding: 40px 16px; overflow-y: auto; z-index: 50; }
+  .modal { position: relative; width: 100%; max-width: 520px; background: #FFFDF9; border: 1px solid #E2D8C7; border-radius: 18px; padding: 26px; box-shadow: 0 16px 50px rgba(40,28,16,0.28); }
+  .close { position: absolute; top: 16px; right: 16px; border: none; background: transparent; cursor: pointer; color: #8A8178; padding: 4px; display: inline-flex; }
+  .modal-title { font-family: 'Cormorant Garamond', Georgia, serif; font-size: 28px; font-weight: 600; margin-bottom: 18px; }
+  .f-row { display: flex; gap: 12px; }
+  .field { flex: 1; margin-bottom: 12px; }
+  .f-label { font-size: 11px; letter-spacing: 0.5px; color: #8A8178; margin-bottom: 5px; font-weight: 500; }
+  .input { width: 100%; border: 1px solid #E2D8C7; border-radius: 9px; padding: 9px 12px; font-size: 14px; color: #1A1614; background: #fff; outline: none; }
+  .f-err { font-size: 13px; color: #9C5C5C; background: #9C5C5C12; border: 1px solid #9C5C5C33; border-radius: 9px; padding: 9px 12px; margin-top: 4px; margin-bottom: 12px; }
+  .save-btn { margin-top: 14px; width: 100%; border: none; background: #C08A3E; color: #fff; font-size: 14px; font-weight: 600; padding: 12px; border-radius: 11px; cursor: pointer; }
+
+  @media (max-width: 600px) { .grid { grid-template-columns: 1fr; } }
+</style>
+</head>
+<body>
+<div class="wrap" id="app"></div>
+
+<script>
+"use strict";
+
+// ── 資料 ──────────────────────────────────────────────
+const NOTE_TIERS = [
+  { key: "top", label: "前調", sub: "Top", color: "#C08A3E" },
+  { key: "middle", label: "中調", sub: "Heart", color: "#9C5C5C" },
+  { key: "base", label: "後調", sub: "Base", color: "#6E7A5E" },
+];
+
+const TEMP_TIERS = [
+  { key: "scorching", label: "酷暑", emoji: "🔥", hint: "> 30°C", min: 30, max: 99 },
+  { key: "warm", label: "夏暖", emoji: "☀️", hint: "25–30°C", min: 25, max: 30 },
+  { key: "comfy", label: "舒適", emoji: "🌤️", hint: "18–25°C", min: 18, max: 25 },
+  { key: "cool", label: "微涼", emoji: "🍂", hint: "10–18°C", min: 10, max: 18 },
+  { key: "cold", label: "寒冷", emoji: "❄️", hint: "< 10°C", min: -50, max: 10 },
+];
+
+const WEATHER_PREFS = {
+  scorching: { like: ["柑橘","佛手柑","檸檬","葡萄柚","萊姆","海洋","水生","海鹽","綠葉","薄荷","青草","黃瓜","橙花","茶"], prefLong: 1, blurb: "酷暑裡香味擴散得又快又猛，清淡通透的柑橘水生最不悶人。" },
+  warm: { like: ["柑橘","佛手柑","橙花","白花","茉莉","綠葉","梨","無花果","荔枝","椰子","鹽","麝香","茶","小蒼蘭"], prefLong: 1, blurb: "夏暖的日子適合明亮的花果與清爽白麝香，別太厚重。" },
+  comfy: { like: ["茉莉","玫瑰","鳶尾","白花","綠葉","茶","麝香","鼠尾草","紫羅蘭","小蒼蘭","牡丹"], prefLong: 2, blurb: "舒適的溫度最百搭，柔和花香與清雅木質都合適。" },
+  cool: { like: ["木質","檀香","雪松","廣藿香","焚香","茶","肉桂","蘋果","無花果","香根草","皮革","菸草","苔蘚"], prefLong: 2, blurb: "微涼時節適合帶點暖意的木質與辛香。" },
+  cold: { like: ["琥珀","香草","焚香","麝香","檀香","廣藿香","皮革","煙草","菸草","肉桂","丁香","可可","咖啡","東方","乳香","沉香","烏木","零陵香豆"], prefLong: 3, blurb: "寒冷時香氣擴散慢，溫暖濃郁、持久有包覆感的東方木質最撐得住。" },
+};
+
+const LONG_LABELS = { 1: "清淡", 2: "適中", 3: "持久" };
+
+const LIBRARY = [
+  { nameZh:"廣藿之匣", name:"Babylon", brand:"Penhaligon's", year:"2019", top:["肉豆蔻","番紅花","芫荽"], middle:["莎草（Cypriol）"], base:["香草","檀香","雪松"], description:"東方辛香木質，溫暖的香料與奶香般的香草，沉穩內斂。", longevity:3, verified:true },
+  { nameZh:"龍首", name:"The World According to Arthur", brand:"Penhaligon's", year:"2021", top:["焚香","香草","葡萄柚"], middle:["麝香葵（Ambrette）","快樂鼠尾草"], base:["焚香","零陵香豆"], description:"龍首瓶蓋的亞瑟。樹脂焚香裹著太妃糖般的香草，明亮又神秘。", longevity:3, verified:true },
+  { nameZh:"月亮女神", name:"Luna", brand:"Penhaligon's", year:"", top:["佛手柑","橙花","杜松子"], middle:["茉莉","玫瑰"], base:["麝香","琥珀","鳶尾"], description:"月光下的清冷花香，柑橘與白花交織出空靈通透感。", longevity:2, verified:true },
+  { nameZh:"盤羊", name:"Halfeti", brand:"Penhaligon's", year:"2015", top:["絲柏葉","番紅花","小豆蔻","艾草","佛手柑","葡萄柚"], middle:["保加利亞玫瑰","肉豆蔻","茉莉"], base:["沉香（烏木）","雪松","皮革","檀香","琥珀","零陵香豆","香草","麝香"], description:"濃郁的東方木質花香，黑玫瑰與烏木交疊，奢華而神秘。", longevity:3, verified:true },
+  { nameZh:"Lord George", name:"The Tragedy of Lord George", brand:"Penhaligon's", year:"2016", top:["白蘭地","鼠尾草（馥奇調）"], middle:["刮鬍皂","木質"], base:["琥珀","零陵香豆","麝香"], description:"鹿首瓶蓋的貴族。醺人的白蘭地裹著琥珀與零陵香，溫暖紳士感。", longevity:3, verified:true },
+  { nameZh:"公雞", name:"Clandestine Clara", brand:"Penhaligon's", year:"2017", top:["黑醋栗","佛手柑","粉紅胡椒"], middle:["晚香玉","鳶尾","依蘭"], base:["廣藿香","香草","麝香","焚香"], description:"孔雀（克拉拉）。濃豔的晚香玉與黑醋栗，妖嬈而危險的女性氣場。", longevity:3, verified:true },
+  { nameZh:"Duchess Rose", name:"The Coveted Duchess Rose", brand:"Penhaligon's", year:"2018", top:["柑橘","佛手柑","粉紅胡椒"], middle:["玫瑰","牡丹","荔枝"], base:["麝香","廣藿香"], description:"獅首瓶蓋的羅斯。甜美多汁的玫瑰，嬌俏中帶點狡黠。", longevity:2, verified:true },
+  { nameZh:"the duke", name:"Much Ado About the Duke", brand:"Penhaligon's", year:"2016", top:["佛手柑","薰衣草","肉桂"], middle:["皮革","玫瑰","肉豆蔻"], base:["檀香","香草","麝香","癒創木"], description:"犬首瓶蓋的公爵。皮革與辛香交織的紳士木質，端莊體面。", longevity:3, verified:true },
+  { nameZh:"changing constance", name:"Changing Constance", brand:"Penhaligon's", year:"2020", top:["黑醋栗","苦艾","鼠尾草"], middle:["紫羅蘭","鳶尾","天竺葵"], base:["廣藿香","香根草","麝香","雪松"], description:"多變的康斯坦絲。綠意苦香開場，轉入粉質鳶尾與沉穩木質。", longevity:2, verified:true },
+  { nameZh:"the blazing mr. sam", name:"The Blazing Mister Sam", brand:"Penhaligon's", year:"2021", top:["冷熱香料","粉紅胡椒","番紅花"], middle:["肉桂","肉豆蔻","丁香"], base:["雪松","廣藿香","皮革"], description:"冷熱香料在雪松與廣藿香上碰撞，火熱而引人側目的存在感。", longevity:3, verified:true },
+  { nameZh:"terrible teddy", name:"Terrible Teddy", brand:"Penhaligon's", year:"2019", top:["佛手柑","薄荷","鼠尾草"], middle:["天竺葵","薰衣草","肉桂"], base:["皮革","香根草","廣藿香","麝香"], description:"頑劣的泰迪。清新草本開場，藏著皮革與木質的調皮野性。", longevity:2, verified:true },
+  { nameZh:"另一個 13", name:"Another 13", brand:"Le Labo", year:"2010", top:["梨","佛手柑"], middle:["茉莉","白色木質","龍涎香（Ambroxan）"], base:["麝香","鳶尾","香根草"], description:"近未來感的清透麝香，乾淨中帶一抹果香，極簡卻有記憶點。", longevity:3, verified:true },
+  { nameZh:"檀香 33", name:"Santal 33", brand:"Le Labo", year:"2011", top:["小豆蔻","鳶尾","紫羅蘭"], middle:["鳶尾","紫羅蘭","皮革","紫羅蘭葉"], base:["檀香","雪松","皮革","麝香","琥珀"], description:"標誌性的乾燥木質與皮革，煙燻而中性的都會冷調。", longevity:3, verified:true },
+  { nameZh:"英國梨與小蒼蘭", name:"English Pear & Freesia", brand:"Jo Malone", year:"2010", top:["梨","甜瓜"], middle:["小蒼蘭","玫瑰","梨花"], base:["廣藿香","琥珀","白麝香"], description:"多汁的英國梨裹著小蒼蘭花香，清新柔美的秋日果香。", longevity:1, verified:true },
+  { nameZh:"Hwyl", name:"Hwyl", brand:"Aesop", year:"2017", top:["絲柏","杜松","香根草"], middle:["焚香","岩蘭草","木質"], base:["檀香","焚香","苔蘚"], description:"森林神殿般的焚香木質，清冷靜謐，帶禪意的沉靜氣息。", longevity:2, verified:true },
+  { nameZh:"北國雪松", name:"Cedrus (Atelier des Fleurs)", brand:"Chloé", year:"2019", top:["小豆蔻","佛手柑","粉紅胡椒"], middle:["保加利亞玫瑰","桂皮（Cassia）"], base:["香根草","檀香","雪松","麝香"], description:"絲滑奶感的雪松，乾燥木質被花香與安息香柔化，溫潤而中性。", longevity:2, verified:true },
+  { nameZh:"Pure", name:"Pure", brand:"Aux Paradis", year:"2010", top:["黃柑橘","紅胡椒","佛手柑"], middle:["肉豆蔻"], base:["麝香"], description:"晴空下的白花意象。柑橘明亮開場，一抹紅胡椒辛香，收於柔軟粉質麝香。", longevity:1, verified:true },
+  { nameZh:"Savon", name:"Savon", brand:"Aux Paradis", year:"2008", top:["檸檬","羅勒"], middle:["薰衣草","茉莉"], base:["麝香"], description:"沐浴後的潔淨肥皂香。檸檬羅勒清新開場，南法薰衣草柔粉，乾淨而療癒。", longevity:1, verified:true },
+  { nameZh:"貓咪頭頂的氣味", name:"", brand:"郁郁", year:"", top:[], middle:[], base:[], description:"", longevity:0, verified:false },
+  { nameZh:"島嶼青蕨", name:"", brand:"郁郁", year:"", top:["青草","海鹽"], middle:["青蕨","鼠尾草","古巴香脂"], base:["東印度檀香","烏木","台灣香杉","龍涎香"], description:"山韻系列。海風青草開場，蕨葉與木質交織出潮濕森林的綠意。", longevity:2, verified:true },
+  { nameZh:"書寫願景", name:"", brand:"郁郁", year:"", top:[], middle:[], base:[], description:"", longevity:0, verified:false },
+  { nameZh:"高山包種", name:"High Mountain Baozhong Tea", brand:"郁郁", year:"", top:["綠葉"], middle:["包種茶","烏龍茶原精"], base:["檀香","喀什米爾木"], description:"如清晨山嵐中初醒的一口呼吸，青綠綻放為溫潤茶香，收於沉穩木質。", longevity:1, verified:true },
+  { nameZh:"粽葉金桔", name:"", brand:"郁郁", year:"", top:[], middle:[], base:[], description:"", longevity:0, verified:false },
+  { nameZh:"凍頂烏龍", name:"Dong Ding Oolong Tea", brand:"郁郁", year:"", top:["佛手柑","蜜香"], middle:["凍頂烏龍","菸草","杉樹","乳香"], base:["龍舌蘭","琥珀","廣藿香"], description:"以凍頂烏龍的熟果與碳焙氣為發想，菸草杉木的茶香裹著醺暖尾韻。", longevity:2, verified:true },
+];
+
+// ── 持久儲存：IndexedDB ──────────────────────────────
+const DB_NAME = "perfume-cabinet", STORE = "perfumes";
+function openDB() {
+  return new Promise((resolve, reject) => {
+    const req = indexedDB.open(DB_NAME, 1);
+    req.onupgradeneeded = () => { const db = req.result; if (!db.objectStoreNames.contains(STORE)) db.createObjectStore(STORE, { keyPath: "id" }); };
+    req.onsuccess = () => resolve(req.result);
+    req.onerror = () => reject(req.error);
+  });
+}
+const store = {
+  async all() { const db = await openDB(); return new Promise((res, rej) => { const t = db.transaction(STORE,"readonly").objectStore(STORE).getAll(); t.onsuccess=()=>res(t.result||[]); t.onerror=()=>rej(t.error); }); },
+  async put(item) { const db = await openDB(); return new Promise((res, rej) => { const t = db.transaction(STORE,"readwrite").objectStore(STORE).put(item); t.onsuccess=()=>res(true); t.onerror=()=>rej(t.error); }); },
+  async del(id) { const db = await openDB(); return new Promise((res, rej) => { const t = db.transaction(STORE,"readwrite").objectStore(STORE).delete(id); t.onsuccess=()=>res(true); t.onerror=()=>rej(t.error); }); },
+};
+
+// ── 小工具 ────────────────────────────────────────────
+const esc = (s) => String(s == null ? "" : s).replace(/[&<>"']/g, (c) => ({ "&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;" }[c]));
+const parseNotes = (str) => String(str||"").split(/[、,，\n]/).map((s)=>s.trim()).filter(Boolean);
+
+// SVG 圖示
+const IC = {
+  droplet: (sz=24,c="#C08A3E",sw=1.2) => '<svg width="'+sz+'" height="'+sz+'" viewBox="0 0 24 24" fill="none" stroke="'+c+'" stroke-width="'+sw+'" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2.69l5.66 5.66a8 8 0 1 1-11.31 0z"/></svg>',
+  plus: (sz=17,c="#F3EDE2") => '<svg width="'+sz+'" height="'+sz+'" viewBox="0 0 24 24" fill="none" stroke="'+c+'" stroke-width="1.8" stroke-linecap="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>',
+  x: (sz=18,c="#8A8178") => '<svg width="'+sz+'" height="'+sz+'" viewBox="0 0 24 24" fill="none" stroke="'+c+'" stroke-width="1.8" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>',
+  trash: (sz=13,c="#9C5C5C") => '<svg width="'+sz+'" height="'+sz+'" viewBox="0 0 24 24" fill="none" stroke="'+c+'" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>',
+  pencil: (sz=13,c="#8A8178") => '<svg width="'+sz+'" height="'+sz+'" viewBox="0 0 24 24" fill="none" stroke="'+c+'" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4z"/></svg>',
+  sparkles: (sz=11,c="#C08A3E") => '<svg width="'+sz+'" height="'+sz+'" viewBox="0 0 24 24" fill="none" stroke="'+c+'" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l1.9 5.8L19.5 11l-5.6 2.2L12 19l-1.9-5.8L4.5 11l5.6-2.2z"/></svg>',
+  spinner: (sz=16,c="#8A8178") => '<svg class="spin" width="'+sz+'" height="'+sz+'" viewBox="0 0 24 24" fill="none" stroke="'+c+'" stroke-width="1.8" stroke-linecap="round"><line x1="12" y1="2" x2="12" y2="6"/><line x1="12" y1="18" x2="12" y2="22"/><line x1="4.9" y1="4.9" x2="7.8" y2="7.8"/><line x1="16.2" y1="16.2" x2="19.1" y2="19.1"/><line x1="2" y1="12" x2="6" y2="12"/><line x1="18" y1="12" x2="22" y2="12"/><line x1="4.9" y1="19.1" x2="7.8" y2="16.2"/><line x1="16.2" y1="7.8" x2="19.1" y2="4.9"/></svg>',
+};
+
+// ── 狀態 ──────────────────────────────────────────────
+const ST = {
+  collection: [], loading: true,
+  showForm: false, editingId: null, formError: null,
+  form: emptyForm(),
+  tierKey: null, recommendation: null, recList: [],
+  autoWx: null, wxState: "idle",
+};
+function emptyForm() { return { name:"", nameZh:"", brand:"", year:"", top:"", middle:"", base:"", description:"", longevity:"2" }; }
+
+// ── 邏輯 ──────────────────────────────────────────────
+function tierForTemp(t) {
+  return TEMP_TIERS.find((x) => t > x.min && t <= x.max) || TEMP_TIERS.find((x) => t <= x.max) || TEMP_TIERS[TEMP_TIERS.length-1];
+}
+
+function recommend(key, wx) {
+  ST.tierKey = key; ST.recommendation = null; ST.recList = [];
+  if (ST.collection.length) {
+    const pref = WEATHER_PREFS[key];
+    const scored = ST.collection.map((p) => {
+      const all = [].concat(p.notes && p.notes.top || [], p.notes && p.notes.middle || [], p.notes && p.notes.base || []).join(" ");
+      let noteScore = 0; const matched = [];
+      pref.like.forEach((kw) => { if (all.indexOf(kw) >= 0) { noteScore++; matched.push(kw); } });
+      const lon = p.longevity || 0;
+      const longScore = lon ? Math.max(0, 2 - Math.abs(lon - pref.prefLong)) : 0;
+      return { perfume: p, score: noteScore + longScore, noteScore, matched, lon };
+    });
+    // 只列有命中香調的，依適合度（總分）由高到低；同分時持香度貼合者在前
+    ST.recList = scored
+      .filter((s) => s.noteScore > 0)
+      .sort((a, b) => b.score - a.score);
+  }
+  render();
+}
+
+function fetchWeather() {
+  if (!navigator.geolocation) { ST.wxState = "error"; render(); return; }
+  ST.wxState = "loading"; render();
+  navigator.geolocation.getCurrentPosition(
+    async (pos) => {
+      const { latitude, longitude } = pos.coords;
+      try {
+        const r = await fetch("https://api.open-meteo.com/v1/forecast?latitude=" + latitude + "&longitude=" + longitude + "&current=temperature_2m&timezone=auto");
+        const d = await r.json();
+        const temp = Math.round(d.current.temperature_2m);
+        let place = "你所在的位置";
+        try {
+          const g = await fetch("https://api.bigdatacloud.net/data/reverse-geocode-client?latitude=" + latitude + "&longitude=" + longitude + "&localityLanguage=zh");
+          const j = await g.json();
+          place = j.city || j.locality || j.principalSubdivision || place;
+        } catch (e) {}
+        ST.autoWx = { temp: temp, place: place };
+        ST.wxState = "done";
+        recommend(tierForTemp(temp).key, ST.autoWx);
+      } catch (e) { ST.wxState = "error"; render(); }
+    },
+    () => { ST.wxState = "error"; render(); },
+    { enableHighAccuracy: false, timeout: 10000 }
+  );
+}
+
+function openAddForm() { ST.form = emptyForm(); ST.editingId = null; ST.formError = null; ST.showForm = true; render(); }
+function openEditForm(item) {
+  ST.form = {
+    name: item.name||"", nameZh: item.nameZh||"", brand: item.brand||"", year: item.year||"",
+    top: ((item.notes&&item.notes.top)||[]).join("、"), middle: ((item.notes&&item.notes.middle)||[]).join("、"), base: ((item.notes&&item.notes.base)||[]).join("、"),
+    description: item.description||"", longevity: item.longevity ? String(item.longevity) : "2",
+  };
+  ST.editingId = item.id; ST.formError = null; ST.showForm = true; render();
+}
+function fillFromLibrary(idx) {
+  if (idx === "") return;
+  const p = LIBRARY[Number(idx)];
+  ST.form = {
+    name: p.name||"", nameZh: p.nameZh||"", brand: p.brand||"", year: p.year||"",
+    top: (p.top||[]).join("、"), middle: (p.middle||[]).join("、"), base: (p.base||[]).join("、"),
+    description: p.description||"", longevity: p.longevity ? String(p.longevity) : "2",
+  };
+  ST.formError = null; render();
+}
+function syncFormFromInputs() {
+  ["name","nameZh","brand","year","top","middle","base","description","longevity"].forEach((k) => {
+    const el = document.getElementById("f-" + k);
+    if (el) ST.form[k] = el.value;
+  });
+}
+async function saveForm() {
+  syncFormFromInputs();
+  const f = ST.form;
+  if (!f.name.trim() && !f.nameZh.trim()) { ST.formError = "請至少填入香水名稱（中文或原文皆可）。"; render(); return; }
+  const notes = { top: parseNotes(f.top), middle: parseNotes(f.middle), base: parseNotes(f.base) };
+  const base = {
+    name: f.name.trim() || f.nameZh.trim(), nameZh: f.nameZh.trim() || f.name.trim(),
+    brand: f.brand.trim(), year: f.year.trim(), notes: notes, description: f.description.trim(),
+    longevity: Number(f.longevity) || 2,
+  };
+  try {
+    if (ST.editingId) {
+      const existing = ST.collection.find((c) => c.id === ST.editingId) || {};
+      const updated = Object.assign({}, existing, base);
+      await store.put(updated);
+      ST.collection = ST.collection.map((x) => x.id === ST.editingId ? updated : x);
+    } else {
+      const entry = Object.assign({ id: "p_" + Date.now(), savedAt: Date.now() }, base);
+      await store.put(entry);
+      ST.collection = [entry].concat(ST.collection);
+    }
+    ST.showForm = false; ST.form = emptyForm(); ST.editingId = null; render();
+  } catch (e) { ST.formError = "儲存失敗，請再試一次。"; render(); }
+}
+async function removeItem(id) {
+  try {
+    await store.del(id);
+    ST.collection = ST.collection.filter((x) => x.id !== id);
+    ST.recList = ST.recList.filter((r) => r.perfume.id !== id);
+    render();
+  } catch (e) {}
+}
+
+// ── 畫面 ──────────────────────────────────────────────
+function pyramidHTML(notes, compact) {
+  if (!notes) return "";
+  if (!NOTE_TIERS.some((t) => (notes[t.key]||[]).length)) return "";
+  const rows = NOTE_TIERS.map((tier) => {
+    const list = notes[tier.key] || [];
+    if (!list.length) return "";
+    const pills = list.map((n) => '<span class="pill" style="background:' + tier.color + '18;border:1px solid ' + tier.color + '33;">' + esc(n) + '</span>').join("");
+    return '<div class="tier-row"><div class="tier-head"><span class="tier-label" style="color:' + tier.color + '">' + tier.label + '</span><span class="tier-sub">' + tier.sub + '</span></div><div class="note-pills">' + pills + '</div></div>';
+  }).join("");
+  return '<div class="pyramid">' + rows + '</div>';
+}
+
+function render() {
+  const activeTier = ST.tierKey ? TEMP_TIERS.find((t) => t.key === ST.tierKey) : null;
+
+  let wxSubText;
+  if (ST.wxState === "done" && ST.autoWx) wxSubText = "已抓到 " + esc(ST.autoWx.place) + " 目前 " + ST.autoWx.temp + "°C，下方已自動選好級距並列出最適合的香水，也可手動改。";
+  else if (ST.wxState === "loading") wxSubText = "正在抓你所在地的天氣…";
+  else wxSubText = "選擇今天的溫度級距，列出收藏中最適合的香水。";
+
+  const loadingRow = ST.wxState === "loading" ? '<div class="hint">' + IC.spinner(14) + ' 定位並查詢中…</div>' : "";
+  const errRow = ST.wxState === "error" ? '<div class="wx-err">抓不到自動天氣（可能未授權定位，或瀏覽器擋了定位）。手動選下面的級距即可。<button class="retry" id="retry-wx">重試自動偵測</button></div>' : "";
+
+  const chips = TEMP_TIERS.map((w) =>
+    '<button class="chip' + (ST.tierKey === w.key ? ' active' : '') + '" data-tier="' + w.key + '"><span class="emoji">' + w.emoji + '</span><span class="c-label">' + w.label + '</span><span class="c-sub">' + w.hint + '</span></button>'
+  ).join("");
+
+  let recHTML = "";
+  if (ST.tierKey && !ST.collection.length) {
+    recHTML = '<div class="hint">先在下方新增幾款香水，才能推薦。</div>';
+  } else if (ST.tierKey && ST.recList.length === 0) {
+    recHTML = '<div class="hint">收藏裡目前沒有特別適合' + (activeTier ? activeTier.label : '這個溫度') + '的香水。換個級距，或之後多加幾款試試。</div>';
+  } else if (ST.recList.length) {
+    const head = '<div class="rec-head"><span class="rec-tag">' + IC.sparkles() + ' ' + (activeTier ? activeTier.label + '（' + activeTier.hint + '）' : '') + ' 最適合的香水</span><span class="rec-count">' + ST.recList.length + ' 款</span></div>';
+    const rows = ST.recList.map((r, i) => {
+      const p = r.perfume;
+      const badge = p.longevity ? '<span class="long-badge">持香 ' + LONG_LABELS[p.longevity] + '</span>' : "";
+      const hits = r.matched.length ? '<div class="rec-hits">命中香調：' + r.matched.map((m) => '<span class="hit-pill">' + esc(m) + '</span>').join("") + '</div>' : "";
+      const orig = p.name && p.name !== p.nameZh ? '<span class="rl-orig">' + esc(p.name) + '</span>' : "";
+      return '<div class="rec-row"><div class="rl-rank">' + (i + 1) + '</div><div class="rl-body"><div class="rl-title">' + esc(p.nameZh) + ' ' + orig + '</div><div class="rl-brand">' + esc(p.brand || "—") + '</div>' + hits + '</div><div class="rl-side">' + badge + '</div></div>';
+    }).join("");
+    recHTML = '<div class="rec-list">' + head + rows + '</div>';
+  }
+
+  let listHTML;
+  if (ST.loading) listHTML = '<div class="empty">' + IC.spinner(20) + '</div>';
+  else if (!ST.collection.length) listHTML = '<div class="empty">收藏室還是空的。點上方「新增香水」開始建立。</div>';
+  else listHTML = '<div class="grid">' + ST.collection.map((item) => {
+    const badge = item.longevity ? '<span class="long-badge">持香 ' + LONG_LABELS[item.longevity] + '</span>' : "";
+    const desc = item.description ? '<p class="c-desc">' + esc(item.description) + '</p>' : "";
+    return '<div class="card"><div class="card-actions"><button class="icon-btn" data-edit="' + item.id + '">' + IC.pencil() + '</button><button class="icon-btn danger" data-del="' + item.id + '">' + IC.trash() + '</button></div>' +
+      '<div class="card-img">' + IC.droplet(24) + '</div>' +
+      '<div class="c-brand">' + esc(item.brand || "—") + (item.year ? ' · ' + esc(item.year) : '') + '</div>' +
+      '<div class="c-name">' + esc(item.nameZh) + '</div><div class="c-orig">' + esc(item.name) + '</div>' + desc + badge + pyramidHTML(item.notes, true) + '</div>';
+  }).join("") + '</div>';
+
+  let modalHTML = "";
+  if (ST.showForm) {
+    const f = ST.form;
+    const libOpts = LIBRARY.map((p, i) => '<option value="' + i + '">' + esc(p.brand) + '　' + esc(p.nameZh) + (p.verified ? '' : '（待補香調）') + '</option>').join("");
+    const libSel = !ST.editingId ? '<div style="margin-bottom:18px"><div class="f-label">從香水庫快速帶入（選填）</div><select class="input" id="lib-select"><option value="">— 手動輸入，或從這裡選一款 —</option>' + libOpts + '</select></div>' : "";
+    const errHTML = ST.formError ? '<div class="f-err">' + esc(ST.formError) + '</div>' : "";
+    modalHTML = '<div class="overlay" id="overlay"><div class="modal" id="modal"><button class="close" id="close-modal">' + IC.x() + '</button>' +
+      '<div class="modal-title">' + (ST.editingId ? '編輯香水' : '新增香水') + '</div>' + libSel +
+      '<div class="f-row"><div class="field"><div class="f-label">中文名稱</div><input class="input" id="f-nameZh" value="' + esc(f.nameZh) + '" placeholder="例如：檀香 33"></div><div class="field"><div class="f-label">原文名稱</div><input class="input" id="f-name" value="' + esc(f.name) + '" placeholder="Santal 33"></div></div>' +
+      '<div class="f-row"><div class="field"><div class="f-label">品牌</div><input class="input" id="f-brand" value="' + esc(f.brand) + '" placeholder="Le Labo"></div><div class="field"><div class="f-label">年份</div><input class="input" id="f-year" value="' + esc(f.year) + '" placeholder="2011"></div></div>' +
+      '<div class="field"><div class="f-label">前調（用、或逗號分隔）</div><input class="input" id="f-top" value="' + esc(f.top) + '" placeholder="小豆蔻、紫羅蘭"></div>' +
+      '<div class="field"><div class="f-label">中調</div><input class="input" id="f-middle" value="' + esc(f.middle) + '" placeholder="鳶尾、皮革"></div>' +
+      '<div class="field"><div class="f-label">後調</div><input class="input" id="f-base" value="' + esc(f.base) + '" placeholder="檀香、雪松、麝香"></div>' +
+      '<div class="field"><div class="f-label">描述（選填）</div><input class="input" id="f-description" value="' + esc(f.description) + '" placeholder="一句話形容它的氣味性格"></div>' +
+      '<div class="field"><div class="f-label">持香度</div><select class="input" id="f-longevity"><option value="1"' + (f.longevity==="1"?' selected':'') + '>清淡（約 2–4 小時，貼膚淡香）</option><option value="2"' + (f.longevity==="2"?' selected':'') + '>適中（約 4–6 小時）</option><option value="3"' + (f.longevity==="3"?' selected':'') + '>持久（6 小時以上，擴散明顯）</option></select></div>' +
+      errHTML + '<button class="save-btn" id="save-form">' + (ST.editingId ? '儲存修改' : '加入收藏') + '</button></div></div>';
+  }
+
+  document.getElementById("app").innerHTML =
+    '<header class="narrow" style="margin-bottom:24px"><div style="display:flex;align-items:center;gap:7px;margin-bottom:6px">' + IC.droplet(18,"#C08A3E",1.5) + '<span class="kicker">香水收藏室</span></div><h1 class="title">The Perfume Cabinet</h1><p class="subtitle">手動記錄你的香水，依今天的天氣從收藏中挑一款來擦。</p></header>' +
+    '<div class="narrow"><button class="btn-add" id="add-btn">' + IC.plus(17) + ' 新增香水</button></div>' +
+    '<div class="narrow panel"><div class="w-title">今天該擦哪一瓶？</div><div class="w-sub">' + wxSubText + '</div>' + loadingRow + errRow + '<div class="w-grid">' + chips + '</div>' + recHTML + '</div>' +
+    '<div class="wide col-head"><span class="col-title">我的收藏</span><span class="count">' + ST.collection.length + '</span></div>' +
+    '<div class="wide">' + listHTML + '</div>' + modalHTML;
+
+  bind();
+}
+
+function bind() {
+  const add = document.getElementById("add-btn"); if (add) add.onclick = openAddForm;
+  const retry = document.getElementById("retry-wx"); if (retry) retry.onclick = fetchWeather;
+  document.querySelectorAll("[data-tier]").forEach((b) => b.onclick = () => recommend(b.getAttribute("data-tier"), ST.autoWx));
+  document.querySelectorAll("[data-edit]").forEach((b) => b.onclick = () => { const it = ST.collection.find((c)=>c.id===b.getAttribute("data-edit")); if (it) openEditForm(it); });
+  document.querySelectorAll("[data-del]").forEach((b) => b.onclick = () => removeItem(b.getAttribute("data-del")));
+  const lib = document.getElementById("lib-select"); if (lib) lib.onchange = () => fillFromLibrary(lib.value);
+  const close = document.getElementById("close-modal"); if (close) close.onclick = () => { ST.showForm = false; render(); };
+  const ov = document.getElementById("overlay"); if (ov) ov.onclick = (e) => { if (e.target === ov) { syncFormFromInputs(); ST.showForm = false; render(); } };
+  const save = document.getElementById("save-form"); if (save) save.onclick = saveForm;
+}
+
+// ── 啟動 ──────────────────────────────────────────────
+(async function init() {
+  try { const items = await store.all(); ST.collection = items.sort((a,b)=>b.savedAt-a.savedAt); }
+  catch (e) { ST.collection = []; }
+  ST.loading = false;
+  render();
+  fetchWeather();
+})();
+</script>
+</body>
+</html>

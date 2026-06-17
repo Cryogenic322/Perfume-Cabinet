@@ -1,0 +1,17 @@
+{
+  "name": "香水收藏室",
+  "short_name": "香水收藏室",
+  "description": "管理你的香水收藏，依天氣推薦今日之選。",
+  "start_url": "./index.html",
+  "display": "standalone",
+  "background_color": "#F3EDE2",
+  "theme_color": "#F3EDE2",
+  "icons": [
+    {
+      "src": "icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any"
+    }
+  ]
+}
