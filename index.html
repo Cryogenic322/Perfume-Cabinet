@@ -43,6 +43,8 @@
   .hint { font-size: 13px; color: #8A8178; margin-top: 14px; display: flex; align-items: center; gap: 6px; }
   .wx-err { font-size: 12.5px; color: #6B6258; background: #F3EDE2; border: 1px solid #E2D8C7; border-radius: 10px; padding: 10px 12px; margin-bottom: 12px; line-height: 1.5; }
   .retry { display: block; margin-top: 8px; border: 1px solid #C08A3E; background: transparent; color: #9C6A1E; font-size: 12px; font-weight: 600; padding: 6px 12px; border-radius: 8px; cursor: pointer; }
+  .loc-btn { margin-bottom: 14px; border: 1px solid #E2D8C7; background: #F8F4EC; color: #6B5430; font-size: 13px; font-weight: 600; padding: 9px 14px; border-radius: 10px; cursor: pointer; }
+  .loc-btn:hover { border-color: #C08A3E; }
 
   .rec-card { display: flex; gap: 16px; margin-top: 18px; padding-top: 16px; border-top: 1px solid #EFE7DA; }
   .rec-img { width: 84px; height: 104px; flex-shrink: 0; border-radius: 10px; overflow: hidden; background: #F3EDE2; border: 1px solid #E2D8C7; display: flex; align-items: center; justify-content: center; }
@@ -161,6 +163,25 @@ const LIBRARY = [
   { nameZh:"高山包種", name:"High Mountain Baozhong Tea", brand:"郁郁", year:"", top:["綠葉"], middle:["包種茶","烏龍茶原精"], base:["檀香","喀什米爾木"], description:"如清晨山嵐中初醒的一口呼吸，青綠綻放為溫潤茶香，收於沉穩木質。", longevity:1, verified:true },
   { nameZh:"粽葉金桔", name:"", brand:"郁郁", year:"", top:[], middle:[], base:[], description:"", longevity:0, verified:false },
   { nameZh:"凍頂烏龍", name:"Dong Ding Oolong Tea", brand:"郁郁", year:"", top:["佛手柑","蜜香"], middle:["凍頂烏龍","菸草","杉樹","乳香"], base:["龍舌蘭","琥珀","廣藿香"], description:"以凍頂烏龍的熟果與碳焙氣為發想，菸草杉木的茶香裹著醺暖尾韻。", longevity:2, verified:true },
+
+  { nameZh:"慵懶早晨", name:"Lazy Sunday Morning", brand:"Maison Margiela", year:"2013", top:["醛","鈴蘭","梨"], middle:["玫瑰","鳶尾","橙花"], base:["白麝香","麝香葵","印尼廣藿香葉"], description:"剛洗好的純白床單，醛香與麝香交織的乾淨慵懶晨光感。", longevity:1, verified:true },
+  { nameZh:"泡泡浴", name:"Bubble Bath", brand:"Maison Margiela", year:"2020", top:["肥皂","佛手柑"], middle:["薰衣草","茉莉","玫瑰"], base:["椰子","白麝香","廣藿香"], description:"肥皂泡與椰子奶香，乾淨清新的沐浴後氣息。", longevity:1, verified:true },
+  { nameZh:"米拉塞蒂", name:"Miraceti", brand:"Aesop", year:"2021", top:["黑胡椒","多香果葉","瑪黛茶"], middle:["麝香葵","安息香脂","勞丹脂"], base:["海藻","沒藥","雪松"], description:"鹹潤的海藻與樹脂沒藥，像海邊曬暖的白石，冷冽中帶暖。", longevity:3, verified:true },
+  { nameZh:"純粹繆思", name:"Pure Musc For Her", brand:"Narciso Rodriguez", year:"2019", top:["麝香"], middle:["茉莉","依蘭","橙花"], base:["喀什米蘭木"], description:"乾淨明亮的白麝香裹著柔軟白花，像冷陽下剛洗好的棉布。", longevity:2, verified:true },
+  { nameZh:"檀道", name:"Tam Dao", brand:"Diptyque", year:"2003", top:["義大利絲柏","香桃木","玫瑰"], middle:["檀香","雪松"], base:["巴西玫瑰木","香料","琥珀","白麝香"], description:"亞洲森林的奶質檀香，乾燥木質帶靜謐禪意。", longevity:2, verified:true },
+  { nameZh:"希臘無花果", name:"Philosykos", brand:"Diptyque", year:"1996", top:["無花果葉","無花果"], middle:["綠葉","椰子"], base:["無花果樹","木質","雪松"], description:"逼真的無花果全貌，葉、果、樹幹的青綠奶香，地中海夏日。", longevity:1, verified:true },
+  { nameZh:"冥府之路", name:"Tenebrae 26", brand:"L'Artisan Parfumeur", year:"2016", top:["冷杉","柑橘"], middle:["乳香","綠色木質"], base:["木質","泥土調"], description:"霧氣中的夜森林，乾燥乳香混著松針與濕潤土壤。", longevity:2, verified:true },
+  { nameZh:"冥府之路馥鬱", name:"Passage d'Enfer Extrême", brand:"L'Artisan Parfumeur", year:"2020", top:["紅蜘蛛百合","粉紅胡椒"], middle:["乳香","茉莉"], base:["檀香","雪松","香草","麝香"], description:"冥府之路的濃香版，紅百合在煙燻乳香中若隱若現，尾調奶質檀香與香草的暖意。", longevity:2, verified:true },
+  { nameZh:"像你這樣的人", name:"You or Someone Like You", brand:"État Libre d'Orange", year:"2017", top:["薄荷","葡萄柚","佛手柑","茴香"], middle:["綠調","黑醋栗","玫瑰","Hedione"], base:["白麝香"], description:"史上最強 Mojito 香水，搗碎薄荷與柑橘的沁涼氣泡感，後段透出柔和玫瑰，盛夏與雨天皆宜。", longevity:2, verified:true },
+  { nameZh:"肌膚之華", name:"Fleur de Peau", brand:"Diptyque", year:"2018", top:["醛","粉紅胡椒","白芷","佛手柑"], middle:["鳶尾","土耳其玫瑰"], base:["麝香","麝香葵","胡蘿蔔","龍涎香","檀香","皮革","琥珀木"], description:"源自厄洛斯與賽姬神話的肌膚之香，粉質鳶尾裹著柔軟白麝香，乾淨又帶一絲性感體溫感。", longevity:3, verified:true },
+  { nameZh:"阿提密西亞", name:"Artemisia", brand:"Penhaligon's", year:"2002", top:["油桃","綠調"], middle:["紫羅蘭","香草","茶","鈴蘭","茉莉","青蘋果"], base:["麝香","檀香","橡木苔","琥珀"], description:"粉質的綠色花香，紫羅蘭與鈴蘭的空靈感，柔和安靜的貼膚膚香。", longevity:1, verified:true },
+
+  { nameZh:"租賃心臟", name:"Heart for Rent", brand:"Le Hemora", year:"", top:[], middle:[], base:[], description:"", longevity:0, verified:false },
+  { nameZh:"過度換氣", name:"Breathless", brand:"Le Hemora", year:"", top:[], middle:[], base:[], description:"", longevity:0, verified:false },
+  { nameZh:"未付思緒", name:"Unpaid Thoughts", brand:"Le Hemora", year:"", top:[], middle:[], base:[], description:"", longevity:0, verified:false },
+  { nameZh:"雪盲症", name:"Snow Blindness", brand:"Le Hemora", year:"", top:[], middle:[], base:[], description:"", longevity:0, verified:false },
+  { nameZh:"妄聽症", name:"Paracusia", brand:"Le Hemora", year:"", top:[], middle:[], base:[], description:"", longevity:0, verified:false },
+  { nameZh:"失語症", name:"Aphasia", brand:"Le Hemora", year:"", top:[], middle:[], base:[], description:"", longevity:0, verified:false },
 ];
 
 // ── 持久儲存：IndexedDB ──────────────────────────────
@@ -332,10 +353,12 @@ function render() {
   let wxSubText;
   if (ST.wxState === "done" && ST.autoWx) wxSubText = "已抓到 " + esc(ST.autoWx.place) + " 目前 " + ST.autoWx.temp + "°C，下方已自動選好級距並列出最適合的香水，也可手動改。";
   else if (ST.wxState === "loading") wxSubText = "正在抓你所在地的天氣…";
-  else wxSubText = "選擇今天的溫度級距，列出收藏中最適合的香水。";
+  else wxSubText = "選擇今天的溫度級距，列出收藏中最適合的香水。想偷懶的話也能用定位自動偵測。";
 
   const loadingRow = ST.wxState === "loading" ? '<div class="hint">' + IC.spinner(14) + ' 定位並查詢中…</div>' : "";
-  const errRow = ST.wxState === "error" ? '<div class="wx-err">抓不到自動天氣（可能未授權定位，或瀏覽器擋了定位）。手動選下面的級距即可。<button class="retry" id="retry-wx">重試自動偵測</button></div>' : "";
+  const errRow = ST.wxState === "error" ? '<div class="wx-err">抓不到自動天氣（可能未授權定位，或瀏覽器擋了定位）。手動選下面的級距即可。<button class="retry" id="retry-wx">再試一次</button></div>' : "";
+  // 只有在還沒抓過、且非載入中時，顯示「自動偵測」按鈕
+  const autoRow = (ST.wxState === "idle") ? '<button class="loc-btn" id="auto-wx">📍 用我的位置自動偵測溫度</button>' : "";
 
   const chips = TEMP_TIERS.map((w) =>
     '<button class="chip' + (ST.tierKey === w.key ? ' active' : '') + '" data-tier="' + w.key + '"><span class="emoji">' + w.emoji + '</span><span class="c-label">' + w.label + '</span><span class="c-sub">' + w.hint + '</span></button>'
@@ -391,7 +414,7 @@ function render() {
   document.getElementById("app").innerHTML =
     '<header class="narrow" style="margin-bottom:24px"><div style="display:flex;align-items:center;gap:7px;margin-bottom:6px">' + IC.droplet(18,"#C08A3E",1.5) + '<span class="kicker">香水收藏室</span></div><h1 class="title">The Perfume Cabinet</h1><p class="subtitle">手動記錄你的香水，依今天的天氣從收藏中挑一款來擦。</p></header>' +
     '<div class="narrow"><button class="btn-add" id="add-btn">' + IC.plus(17) + ' 新增香水</button></div>' +
-    '<div class="narrow panel"><div class="w-title">今天該擦哪一瓶？</div><div class="w-sub">' + wxSubText + '</div>' + loadingRow + errRow + '<div class="w-grid">' + chips + '</div>' + recHTML + '</div>' +
+    '<div class="narrow panel"><div class="w-title">今天該擦哪一瓶？</div><div class="w-sub">' + wxSubText + '</div>' + autoRow + loadingRow + errRow + '<div class="w-grid">' + chips + '</div>' + recHTML + '</div>' +
     '<div class="wide col-head"><span class="col-title">我的收藏</span><span class="count">' + ST.collection.length + '</span></div>' +
     '<div class="wide">' + listHTML + '</div>' + modalHTML;
 
@@ -401,6 +424,7 @@ function render() {
 function bind() {
   const add = document.getElementById("add-btn"); if (add) add.onclick = openAddForm;
   const retry = document.getElementById("retry-wx"); if (retry) retry.onclick = fetchWeather;
+  const autoBtn = document.getElementById("auto-wx"); if (autoBtn) autoBtn.onclick = fetchWeather;
   document.querySelectorAll("[data-tier]").forEach((b) => b.onclick = () => recommend(b.getAttribute("data-tier"), ST.autoWx));
   document.querySelectorAll("[data-edit]").forEach((b) => b.onclick = () => { const it = ST.collection.find((c)=>c.id===b.getAttribute("data-edit")); if (it) openEditForm(it); });
   document.querySelectorAll("[data-del]").forEach((b) => b.onclick = () => removeItem(b.getAttribute("data-del")));
@@ -416,7 +440,6 @@ function bind() {
   catch (e) { ST.collection = []; }
   ST.loading = false;
   render();
-  fetchWeather();
 })();
 </script>
 </body>
