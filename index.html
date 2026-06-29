@@ -150,6 +150,7 @@
   .reset-btn:hover { border-color: #4A5A80; }
 
 </style>
+<script src="https://js.puter.com/v2/"></script>
 </head>
 <body>
 <div class="wrap" id="app"></div>
@@ -366,7 +367,7 @@ function seededPick(arr, seedStr) {
   for (let i = 0; i < seedStr.length; i++) { h = (h * 31 + seedStr.charCodeAt(i)) >>> 0; }
   return arr[h % arr.length];
 }
-// 依牌的元素，從收藏挑一款最搭的香水
+// 依牌的元素，從收藏挑一款搭的香水（在所有命中的款中加權隨機，避免每次都同一款）
 function perfumeForElement(element, seedStr) {
   if (!ST.collection.length) return null;
   const el = TAROT_ELEMENTS[element] || TAROT_ELEMENTS.aether;
@@ -375,11 +376,11 @@ function perfumeForElement(element, seedStr) {
     let s = 0; el.like.forEach((kw) => { if (all.indexOf(kw) >= 0) s++; });
     return { p, s };
   });
-  const maxS = Math.max.apply(null, scored.map((x) => x.s));
-  // 取得分最高的那群，再用種子在其中固定挑一款（同日同牌→同款）
-  const top = scored.filter((x) => x.s === maxS && maxS > 0).map((x) => x.p);
-  if (top.length) return seededPick(top, seedStr);
-  // 都沒命中 → 從全部收藏用種子挑
+  // 命中（score>0）的候選池：依命中數加權，命中越多被選中機率越高，但不鎖死最高分那款
+  const pool = [];
+  scored.forEach((x) => { if (x.s > 0) { for (let i = 0; i < x.s; i++) pool.push(x.p); } });
+  if (pool.length) return seededPick(pool, seedStr);
+  // 完全沒命中 → 從全部收藏挑
   return seededPick(ST.collection, seedStr);
 }
 
@@ -411,16 +412,16 @@ async function drawTarot(force) {
       };
     }
   } catch (e) { /* 連不上 → 用內建 */ }
+  // 每次抽牌產生一個隨機 nonce，讓這次抽牌真正隨機（同日已抽過會走前面 saved 分支固定）
+  const nonce = Math.random().toString(36).slice(2) + Date.now();
   // 備援：內建牌庫
   if (!card) {
-    const seed = tk + (force ? String(Date.now()) : "");
-    const fb = seededPick(TAROT_FALLBACK, seed) || TAROT_FALLBACK[0];
+    const fb = seededPick(TAROT_FALLBACK, nonce) || TAROT_FALLBACK[0];
     card = { name: fb.name, nameZh: fb.nameZh, upright: fb.upright, reversed: fb.reversed, element: fb.element, source: "fallback" };
   }
-  // 決定正逆位：以日期+牌名為種子，同一天固定
-  const orient = seededPick([false, false, true, true], card.name + tk + (force ? String(Date.now()) : ""));
+  const orient = seededPick([false, false, true, true], card.name + nonce);
   const reversed = !!orient;
-  const seedStr = card.name + tk;
+  const seedStr = card.name + nonce;
   const perfume = perfumeForElement(card.element, seedStr);
   const oracle = (TAROT_ELEMENTS[card.element] || TAROT_ELEMENTS.aether).oracle;
   const fortune = fortuneText(card, reversed);
@@ -445,7 +446,48 @@ function guessElement(c) {
 }
 
 function flipTarot() {
-  if (ST.tarot) { ST.tarot.flipped = true; render(); }
+  if (!ST.tarot) return;
+  ST.tarot.flipped = true;
+  render();
+  // 翻牌後嘗試用 AI 生成更像塔羅師的運勢（失敗就保留模板運勢）
+  generateAIFortune();
+}
+
+async function generateAIFortune() {
+  const t = ST.tarot;
+  if (!t || t.aiTried) return;
+  t.aiTried = true;
+  // Puter.js 沒載入或不可用 → 直接用模板，不動作
+  if (typeof puter === "undefined" || !puter.ai || !puter.ai.chat) return;
+  t.aiLoading = true; render();
+  const p = t.perfume;
+  const pos = t.reversed ? "逆位" : "正位";
+  const meaning = t.reversed ? (t.card.reversed || t.card.upright) : t.card.upright;
+  const perfumeDesc = p ? (p.nameZh + "（" + (p.brand || "") + "），香調有" + allNotesOf(p)) : "（暫無對應香水）";
+  const prompt = "你是一位溫柔而有洞察力的塔羅占卜師，正在為一位香水愛好者做今日單張牌占卜。\n" +
+    "抽到的牌：" + t.card.nameZh + "（" + pos + "）\n" +
+    "牌義關鍵字：" + meaning + "\n" +
+    "為他挑選的今日香水：" + perfumeDesc + "\n\n" +
+    "請用繁體中文，以塔羅師對來訪者說話的口吻，寫一段 80～120 字的今日運勢解讀。要自然、有溫度、像即興解牌，把牌的訊息和這款香水的氣味意象自然連結起來，給出今天的指引。只回傳那段話本身，不要任何前言、標題或引號。";
+  try {
+    const resp = await puter.ai.chat(prompt, { model: "gpt-5.4-nano", temperature: 0.9, max_tokens: 300 });
+    let text = "";
+    if (typeof resp === "string") text = resp;
+    else if (resp && resp.message && resp.message.content) text = resp.message.content;
+    else if (resp && resp.text) text = resp.text;
+    text = String(text).trim();
+    if (text && ST.tarot === t) {
+      t.fortune = text;
+      t.aiSource = true;
+      // 更新今日存檔
+      if (ST.tarotSaved && ST.tarotSaved.day === todayKey()) {
+        ST.tarotSaved.fortune = text; ST.tarotSaved.aiSource = true;
+        try { await store.put({ id: "tarot_today", _marker: true, value: ST.tarotSaved }); } catch (e) {}
+      }
+    }
+  } catch (e) { /* AI 失敗 → 保留模板運勢 */ }
+  t.aiLoading = false;
+  render();
 }
 function toggleFilter(facet, key) {
   const arr = ST.filters[facet];
@@ -649,7 +691,8 @@ function render() {
         : '<span class="orient up">正位 ↑</span>';
       const meaning = t.reversed ? (t.card.reversed || t.card.upright) : t.card.upright;
       const up = meaning ? '<div class="tarot-up">' + esc(meaning) + '</div>' : "";
-      const fortune = t.fortune ? '<div class="tarot-fortune"><div class="fortune-label">' + IC.sparkles() + ' 今日運勢</div>' + esc(t.fortune) + '</div>' : "";
+      const fLabel = t.aiLoading ? (IC.spinner(11) + ' 占卜師正在為你解牌…') : ((IC.sparkles() + ' 今日運勢') + (t.aiSource ? ' · 塔羅師' : ''));
+      const fortune = t.fortune ? '<div class="tarot-fortune"><div class="fortune-label">' + fLabel + '</div>' + esc(t.fortune) + '</div>' : "";
       let pf = '<div class="hint">收藏裡還沒有適合的香水。</div>';
       if (p) {
         const badge = p.longevity ? '<span class="long-badge">持香 ' + LONG_LABELS[p.longevity] + '</span>' : "";
