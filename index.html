@@ -111,6 +111,27 @@
 
   @media (max-width: 600px) { .grid { grid-template-columns: 1fr; } }
 
+  .tab-nav { display: flex; gap: 8px; margin-top: 18px; }
+  .tab-btn { flex: 1; border: 1px solid #29344E; background: rgba(16,23,40,0.5); color: #97A3BB; font-size: 14px; font-weight: 600; padding: 12px; border-radius: 12px; cursor: pointer; transition: all .15s; }
+  .tab-btn:hover { border-color: #4A5A80; }
+  .tab-btn.on { border-color: #C9A85C; background: rgba(201,168,92,0.14); color: #E0C078; }
+
+  .tarot-stage { display: flex; justify-content: center; padding: 24px 0 8px; }
+  .tarot-card { border-radius: 16px; }
+  .tarot-card.back { width: 180px; height: 280px; background: linear-gradient(160deg, #16203A 0%, #0E1626 100%); border: 1px solid #C9A85C55; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 14px; cursor: pointer; box-shadow: 0 10px 40px rgba(0,0,0,0.4), inset 0 0 0 6px rgba(201,168,92,0.08); transition: transform .2s, box-shadow .2s; }
+  .tarot-card.back:hover { transform: translateY(-4px); box-shadow: 0 16px 50px rgba(0,0,0,0.5), inset 0 0 0 6px rgba(201,168,92,0.16); }
+  .tarot-back-emblem { font-size: 44px; color: #C9A85C; text-shadow: 0 0 18px rgba(201,168,92,0.5); }
+  .tarot-back-text { font-size: 12px; letter-spacing: 2px; color: #97A3BB; }
+  .tarot-result { animation: fadeUp .4s ease; }
+  @keyframes fadeUp { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: none; } }
+  .tarot-card.front { padding: 22px; background: linear-gradient(160deg, rgba(201,168,92,0.10), rgba(16,23,40,0.6)); border: 1px solid #C9A85C66; text-align: center; }
+  .tarot-elem { display: inline-block; width: 34px; height: 34px; line-height: 34px; border-radius: 999px; border: 1px solid #C9A85C; color: #E0C078; font-size: 16px; font-weight: 600; margin-bottom: 8px; }
+  .tarot-name { font-family: 'Cormorant Garamond', Georgia, serif; font-size: 26px; font-weight: 600; color: #F3ECDA; line-height: 1.1; }
+  .tarot-up { font-size: 12px; color: #97A3BB; margin-top: 4px; }
+  .tarot-oracle { font-size: 14px; color: #D9BE74; line-height: 1.7; margin-top: 14px; font-style: italic; }
+  .tarot-perfume { margin-top: 18px; padding-top: 16px; border-top: 1px solid #29344E; }
+  .tarot-src { font-size: 11px; color: #5C6986; margin-top: 10px; }
+
   .filter-head { display: flex; align-items: center; justify-content: space-between; }
   .toggle-filter { border: 1px solid #2E3A56; background: rgba(16,23,40,0.6); color: #D9BE74; font-size: 12px; font-weight: 600; padding: 5px 12px; border-radius: 8px; cursor: pointer; }
   .filter-sect { margin-top: 16px; }
@@ -139,6 +160,39 @@ const NOTE_TIERS = [
 ];
 
 const LONG_LABELS = { 1: "清淡", 2: "適中", 3: "持久" };
+
+// ── 塔羅占卜資料 ──────────────────────────────────────
+// 牌的元素 → 偏好香調 + 神諭口吻
+const TAROT_ELEMENTS = {
+  fire: { zh: "火", like: ["肉桂","丁香","琥珀","菸草","皮革","威士忌","香料","龍舌蘭","焚香","胡椒","番紅花"], oracle: "今日宜以熱烈包裹自己，讓香氣成為你的火光，照亮想前進的方向。" },
+  water: { zh: "水", like: ["海洋","水生","海鹽","茶","玫瑰","茉莉","鳶尾","白花","椰子","無花果","蜜"], oracle: "今日宜柔軟流動，讓溫潤的香氣承接情緒，如水一般包容自己。" },
+  air: { zh: "風", like: ["柑橘","佛手柑","檸檬","葡萄柚","薄荷","綠葉","青草","橙花","白茶","醛","麝香"], oracle: "今日宜清醒輕盈，讓通透的香氣帶你呼吸，思緒會在風中找到答案。" },
+  earth: { zh: "土", like: ["檀香","雪松","木","廣藿香","香根草","苔蘚","岩蘭草","乳香","沉香","烏木","琥珀"], oracle: "今日宜紮根沉穩，讓木質的香氣成為你的盔甲，安靜而堅定地存在。" },
+  aether: { zh: "靈", like: ["焚香","乳香","沒藥","鳶尾","麝香","龍涎香","檀香","樹脂"], oracle: "今日宜向內聆聽，讓神秘的香氣牽引直覺，未說出口的事終會明朗。" },
+};
+// 備援牌庫（API 連不上時用）— 萊德偉特部分大牌 + 元素
+const TAROT_FALLBACK = [
+  { name: "The Fool", nameZh: "愚者", upright: "新的開始、純真、冒險", element: "air" },
+  { name: "The Magician", nameZh: "魔術師", upright: "創造、意志、行動力", element: "air" },
+  { name: "The High Priestess", nameZh: "女祭司", upright: "直覺、神秘、潛意識", element: "water" },
+  { name: "The Empress", nameZh: "皇后", upright: "豐饒、滋養、感官", element: "earth" },
+  { name: "The Emperor", nameZh: "皇帝", upright: "秩序、權威、穩固", element: "fire" },
+  { name: "The Lovers", nameZh: "戀人", upright: "結合、選擇、和諧", element: "air" },
+  { name: "Strength", nameZh: "力量", upright: "勇氣、溫柔的力量、耐心", element: "fire" },
+  { name: "The Hermit", nameZh: "隱者", upright: "內省、獨處、尋找答案", element: "earth" },
+  { name: "Wheel of Fortune", nameZh: "命運之輪", upright: "轉變、機運、循環", element: "fire" },
+  { name: "The Star", nameZh: "星星", upright: "希望、療癒、靈感", element: "air" },
+  { name: "The Moon", nameZh: "月亮", upright: "幻象、潛意識、夢境", element: "water" },
+  { name: "The Sun", nameZh: "太陽", upright: "喜悅、活力、成功", element: "fire" },
+  { name: "The World", nameZh: "世界", upright: "圓滿、完成、整合", element: "earth" },
+  { name: "Ace of Cups", nameZh: "聖杯王牌", upright: "情感湧現、愛、直覺", element: "water" },
+  { name: "Ace of Wands", nameZh: "權杖王牌", upright: "靈感、熱情、創造", element: "fire" },
+  { name: "Ace of Swords", nameZh: "寶劍王牌", upright: "清晰、真相、突破", element: "air" },
+  { name: "Ace of Pentacles", nameZh: "錢幣王牌", upright: "豐盛、實現、根基", element: "earth" },
+];
+// 牌名 → 中文（API 回傳英文時對照；查不到就顯示英文）
+const TAROT_NAME_ZH = {};
+TAROT_FALLBACK.forEach((c) => { TAROT_NAME_ZH[c.name] = c.nameZh; });
 
 // ── 多維度篩選：香調 → 家族 / 心情 / 場合（自動推測，關鍵字比對） ──
 const FACETS = {
@@ -272,6 +326,9 @@ const ST = {
   wantText: "", avoidText: "",
   filterResult: null,
   collectionCollapsed: true,
+  tab: "filter",          // "filter" | "tarot"
+  tarot: null,            // { card, perfume, oracle, flipped }
+  tarotLoading: false,
 };
 function emptyForm() { return { name:"", nameZh:"", brand:"", year:"", top:"", middle:"", base:"", description:"", longevity:"2" }; }
 
@@ -279,6 +336,96 @@ function emptyForm() { return { name:"", nameZh:"", brand:"", year:"", top:"", m
 // 取一款香水的全部香調字串
 function allNotesOf(p) {
   return [].concat(p.notes && p.notes.top || [], p.notes && p.notes.middle || [], p.notes && p.notes.base || []).join(" ");
+}
+
+// 今日日期字串（當地時區），用來判斷「同一天固定」
+function todayKey() {
+  const d = new Date();
+  return d.getFullYear() + "-" + (d.getMonth()+1) + "-" + d.getDate();
+}
+// 以字串為種子的簡單亂數（讓同一天、同一張牌挑到同一款香水）
+function seededPick(arr, seedStr) {
+  if (!arr.length) return null;
+  let h = 0;
+  for (let i = 0; i < seedStr.length; i++) { h = (h * 31 + seedStr.charCodeAt(i)) >>> 0; }
+  return arr[h % arr.length];
+}
+// 依牌的元素，從收藏挑一款最搭的香水
+function perfumeForElement(element, seedStr) {
+  if (!ST.collection.length) return null;
+  const el = TAROT_ELEMENTS[element] || TAROT_ELEMENTS.aether;
+  const scored = ST.collection.map((p) => {
+    const all = allNotesOf(p);
+    let s = 0; el.like.forEach((kw) => { if (all.indexOf(kw) >= 0) s++; });
+    return { p, s };
+  });
+  const maxS = Math.max.apply(null, scored.map((x) => x.s));
+  // 取得分最高的那群，再用種子在其中固定挑一款（同日同牌→同款）
+  const top = scored.filter((x) => x.s === maxS && maxS > 0).map((x) => x.p);
+  if (top.length) return seededPick(top, seedStr);
+  // 都沒命中 → 從全部收藏用種子挑
+  return seededPick(ST.collection, seedStr);
+}
+
+async function drawTarot(force) {
+  // 同一天已抽過就直接用（除非 force 重抽）
+  const saved = ST.tarotSaved;
+  const tk = todayKey();
+  if (!force && saved && saved.day === tk) {
+    ST.tarot = { card: saved.card, perfume: ST.collection.find((c) => c.id === saved.perfumeId) || perfumeForElement(saved.card.element, saved.card.name + tk), oracle: saved.oracle, flipped: false };
+    render();
+    return;
+  }
+  ST.tarotLoading = true; render();
+  let card = null;
+  // 先試 tarotapi.dev（連網）
+  try {
+    const r = await fetch("https://tarotapi.dev/api/v1/cards/random?n=1");
+    const j = await r.json();
+    const c = j && j.cards && j.cards[0];
+    if (c) {
+      // API 的 type: "major"/"minor"，用 suit/value 推元素；若有 meaning 取關鍵字
+      const elemGuess = guessElement(c);
+      card = {
+        name: c.name,
+        nameZh: TAROT_NAME_ZH[c.name] || c.name,
+        upright: c.meaning_up ? c.meaning_up.split(/[,.;]/)[0].trim() : "",
+        element: elemGuess,
+        source: "api",
+      };
+    }
+  } catch (e) { /* 連不上 → 用內建 */ }
+  // 備援：內建牌庫
+  if (!card) {
+    const seed = tk + (force ? String(Date.now()) : "");
+    const fb = seededPick(TAROT_FALLBACK, seed) || TAROT_FALLBACK[0];
+    card = { name: fb.name, nameZh: fb.nameZh, upright: fb.upright, element: fb.element, source: "fallback" };
+  }
+  const seedStr = card.name + tk;
+  const perfume = perfumeForElement(card.element, seedStr);
+  const oracle = (TAROT_ELEMENTS[card.element] || TAROT_ELEMENTS.aether).oracle;
+  ST.tarot = { card, perfume, oracle, flipped: false };
+  ST.tarotLoading = false;
+  // 存今日結果
+  ST.tarotSaved = { day: tk, card, perfumeId: perfume ? perfume.id : null, oracle };
+  try { await store.put({ id: "tarot_today", _marker: true, value: ST.tarotSaved }); } catch (e) {}
+  render();
+}
+
+// 由 API 牌面推測元素
+function guessElement(c) {
+  const suit = (c.suit || "").toLowerCase();
+  if (suit.indexOf("wand") >= 0) return "fire";
+  if (suit.indexOf("cup") >= 0) return "water";
+  if (suit.indexOf("sword") >= 0) return "air";
+  if (suit.indexOf("pentacle") >= 0 || suit.indexOf("coin") >= 0) return "earth";
+  // 大牌：用牌名對照內建表的元素，否則靈
+  const fb = TAROT_FALLBACK.find((x) => x.name === c.name);
+  return fb ? fb.element : "aether";
+}
+
+function flipTarot() {
+  if (ST.tarot) { ST.tarot.flipped = true; render(); }
 }
 function toggleFilter(facet, key) {
   const arr = ST.filters[facet];
@@ -461,10 +608,50 @@ function render() {
   const filterPanel =
     '<div class="narrow panel"><div class="w-title">今天該擦哪一瓶？</div><div class="w-sub">選擇季節、香調、心情、場合等條件，按「推薦給我」，從收藏中挑出最適合的 6 款。（心情與場合由香調自動判斷，僅供參考）</div>' + filterBody + '</div>';
 
+  // ── 塔羅分頁 ──
+  let tarotPanel = "";
+  {
+    let body = "";
+    if (!ST.collection.length) {
+      body = '<div class="hint">先新增幾款香水，才能為你抽出今日之選。</div>';
+    } else if (ST.tarotLoading) {
+      body = '<div class="tarot-stage"><div class="hint">' + IC.spinner(16) + ' 正在洗牌、與今日的氣場連線…</div></div>';
+    } else if (!ST.tarot) {
+      body = '<div class="tarot-stage"><div class="tarot-card back" id="draw-card"><div class="tarot-back-emblem">✦</div><div class="tarot-back-text">點擊抽出今日的牌</div></div></div>';
+    } else if (!ST.tarot.flipped) {
+      body = '<div class="tarot-stage"><div class="tarot-card back" id="flip-card"><div class="tarot-back-emblem">✦</div><div class="tarot-back-text">點擊翻牌</div></div></div>';
+    } else {
+      const t = ST.tarot; const p = t.perfume;
+      const elZh = (TAROT_ELEMENTS[t.card.element] || TAROT_ELEMENTS.aether).zh;
+      const cardName = t.card.nameZh && t.card.nameZh !== t.card.name ? (t.card.nameZh + ' · ' + t.card.name) : t.card.name;
+      const up = t.card.upright ? '<div class="tarot-up">' + esc(t.card.upright) + '</div>' : "";
+      let pf = '<div class="hint">收藏裡還沒有適合的香水。</div>';
+      if (p) {
+        const badge = p.longevity ? '<span class="long-badge">持香 ' + LONG_LABELS[p.longevity] + '</span>' : "";
+        const orig = p.name && p.name !== p.nameZh ? '<span class="rl-orig">' + esc(p.name) + '</span>' : "";
+        pf = '<div class="tarot-perfume"><div class="rec-tag">' + IC.sparkles() + ' 今日幸運香水</div><div class="rec-name">' + esc(p.nameZh) + ' ' + orig + '</div><div class="rl-brand">' + esc(p.brand || "—") + '</div>' + badge + pyramidHTML(p.notes, true) + '</div>';
+      }
+      const src = t.card.source === "fallback" ? '<div class="tarot-src">（離線牌庫）</div>' : "";
+      body = '<div class="tarot-result"><div class="tarot-card front">' +
+        '<div class="tarot-elem">' + elZh + '</div><div class="tarot-name">' + esc(cardName) + '</div>' + up +
+        '<div class="tarot-oracle">「' + esc(t.oracle) + '」</div></div>' +
+        pf + src +
+        '<button class="reset-btn" id="redraw" style="margin-top:16px">重新抽一張</button></div>';
+    }
+    tarotPanel = '<div class="narrow panel"><div class="w-title">本日幸運香水</div><div class="w-sub">抽一張塔羅牌，由牌的元素為你牽引出今日最適合的香水。同一天抽到的牌固定，明日換新。</div>' + body + '</div>';
+  }
+
+  const tabNav =
+    '<div class="narrow tab-nav">' +
+    '<button class="tab-btn' + (ST.tab === "filter" ? ' on' : '') + '" data-tab="filter">今天該擦哪一瓶？</button>' +
+    '<button class="tab-btn' + (ST.tab === "tarot" ? ' on' : '') + '" data-tab="tarot">本日幸運香水</button>' +
+    '</div>';
+
   document.getElementById("app").innerHTML =
     '<header class="narrow" style="margin-bottom:24px"><div style="display:flex;align-items:center;gap:7px;margin-bottom:6px">' + IC.droplet(18,"#C9A85C",1.5) + '<span class="kicker">香水收藏室</span></div><h1 class="title">The Perfume Cabinet</h1><p class="subtitle">記錄你的香水，依季節、香調、心情挑出最適合的幾款。</p></header>' +
     '<div class="narrow"><button class="btn-add" id="add-btn">' + IC.plus(17) + ' 新增香水</button></div>' +
-    filterPanel +
+    tabNav +
+    (ST.tab === "filter" ? filterPanel : tarotPanel) +
     '<div class="wide col-head" id="col-toggle"><span class="col-title">我的收藏</span><span class="count">' + ST.collection.length + '</span><span class="col-arrow">' + (ST.collectionCollapsed ? '展開 ▼' : '收起 ▲') + '</span></div>' +
     (ST.collectionCollapsed ? '' : '<div class="wide">' + listHTML + '</div>') + modalHTML;
 
@@ -473,6 +660,14 @@ function render() {
 
 function bind() {
   const add = document.getElementById("add-btn"); if (add) add.onclick = openAddForm;
+  document.querySelectorAll("[data-tab]").forEach((b) => b.onclick = () => {
+    ST.tab = b.getAttribute("data-tab");
+    if (ST.tab === "tarot" && !ST.tarot && !ST.tarotLoading) { drawTarot(false); return; }
+    render();
+  });
+  const draw = document.getElementById("draw-card"); if (draw) draw.onclick = () => drawTarot(false);
+  const flip = document.getElementById("flip-card"); if (flip) flip.onclick = flipTarot;
+  const redraw = document.getElementById("redraw"); if (redraw) redraw.onclick = () => drawTarot(true);
   const ct = document.getElementById("col-toggle"); if (ct) ct.onclick = () => { ST.collectionCollapsed = !ST.collectionCollapsed; render(); };
   document.querySelectorAll("[data-facet]").forEach((b) => b.onclick = () => toggleFilter(b.getAttribute("data-facet"), b.getAttribute("data-fkey")));
   const rf = document.getElementById("run-filter"); if (rf) rf.onclick = runFilter;
@@ -520,6 +715,8 @@ async function seedIfFirstRun(rawItems) {
   let raw = [];
   try { raw = await store.all(); } catch (e) { raw = []; }
   ST.collection = raw.filter((x) => !x._marker).sort((a,b)=>b.savedAt-a.savedAt);
+  const savedTarot = raw.find((x) => x.id === "tarot_today");
+  if (savedTarot && savedTarot.value) ST.tarotSaved = savedTarot.value;
   try { await seedIfFirstRun(raw); } catch (e) {}
   ST.loading = false;
   render();
