@@ -176,12 +176,12 @@ const LIBRARY = [
   { nameZh:"肌膚之華", name:"Fleur de Peau", brand:"Diptyque", year:"2018", top:["醛","粉紅胡椒","白芷","佛手柑"], middle:["鳶尾","土耳其玫瑰"], base:["麝香","麝香葵","胡蘿蔔","龍涎香","檀香","皮革","琥珀木"], description:"源自厄洛斯與賽姬神話的肌膚之香，粉質鳶尾裹著柔軟白麝香，乾淨又帶一絲性感體溫感。", longevity:3, verified:true },
   { nameZh:"阿提密西亞", name:"Artemisia", brand:"Penhaligon's", year:"2002", top:["油桃","綠調"], middle:["紫羅蘭","香草","茶","鈴蘭","茉莉","青蘋果"], base:["麝香","檀香","橡木苔","琥珀"], description:"粉質的綠色花香，紫羅蘭與鈴蘭的空靈感，柔和安靜的貼膚膚香。", longevity:1, verified:true },
 
-  { nameZh:"租賃心臟", name:"Heart for Rent", brand:"Le Hemora", year:"", top:[], middle:[], base:[], description:"", longevity:0, verified:false },
-  { nameZh:"過度換氣", name:"Breathless", brand:"Le Hemora", year:"", top:[], middle:[], base:[], description:"", longevity:0, verified:false },
-  { nameZh:"未付思緒", name:"Unpaid Thoughts", brand:"Le Hemora", year:"", top:[], middle:[], base:[], description:"", longevity:0, verified:false },
-  { nameZh:"雪盲症", name:"Snow Blindness", brand:"Le Hemora", year:"", top:[], middle:[], base:[], description:"", longevity:0, verified:false },
-  { nameZh:"妄聽症", name:"Paracusia", brand:"Le Hemora", year:"", top:[], middle:[], base:[], description:"", longevity:0, verified:false },
-  { nameZh:"失語症", name:"Aphasia", brand:"Le Hemora", year:"", top:[], middle:[], base:[], description:"", longevity:0, verified:false },
+  { nameZh:"租賃心臟", name:"Heart for Rent", brand:"Le Hemora", year:"", top:["檸檬皮"], middle:["藏紅花","威士忌","氧化玫瑰","茴香","香草莢","巧克力"], base:["煙灰苔癬","廣藿香","龍涎香","癒創木","麝貓"], description:"一顆被借走的心，短暫滾燙而危險。威士忌與巧克力的醺甜裹著煙灰與麝貓的暗沉動物感。", longevity:3, verified:true },
+  { nameZh:"過度換氣", name:"Breathless", brand:"Le Hemora", year:"", top:["尤加利","綠葉","青草"], middle:["鼠尾草","冷蘆薈","丁香"], base:["岩蘭草","煙燻烏木"], description:"急促呼吸間的一口冷空氣，尤加利與青草的銳利清涼，沉入煙燻木質。", longevity:2, verified:true },
+  { nameZh:"未付思緒", name:"Unpaid Thoughts", brand:"Le Hemora", year:"", top:["青橄欖","苦柚皮","金羅勒","檸檬葉"], middle:["綠橙花","青嫩莖","海鹽","鳶尾粉","玫瑰"], base:["苔蘚","礦物琥珀","喀什米爾白麝"], description:"懸而未決的念頭，青苦柑橘與鹽感綠意，收於粉質鳶尾與礦物白麝。", longevity:2, verified:true },
+  { nameZh:"雪盲症", name:"Snow Blindness", brand:"Le Hemora", year:"", top:["冰片","樟腦","海鹽皮"], middle:["清酒","蘭花"], base:["麝香","丁香"], description:"雪地中的眩白與失焦，冰片樟腦的冷冽刺鼻，沉入清酒與麝香的迷濛。", longevity:2, verified:true },
+  { nameZh:"妄聽症", name:"Paracusia", brand:"Le Hemora", year:"", top:["綠毒汁","無花果"], middle:["焦糖","曼陀羅花","苦杏仁"], base:["樺木焦油","黑麝","菸草"], description:"幻聽般的暗黑苦杏仁，曼陀羅花的致幻甜，墜入樺木焦油與菸草的深淵。", longevity:3, verified:true },
+  { nameZh:"失語症", name:"Aphasia", brand:"Le Hemora", year:"", top:["瑪黛茶"], middle:["當歸","皮革","五月玫瑰"], base:["焦油","廣藿香","乾木"], description:"言語失落後的沉默，瑪黛茶的苦澀草本，皮革與焦油裹著乾涸的玫瑰。", longevity:3, verified:true },
 ];
 
 // ── 持久儲存：IndexedDB ──────────────────────────────
@@ -435,9 +435,42 @@ function bind() {
 }
 
 // ── 啟動 ──────────────────────────────────────────────
+// 首次啟動時，自動把整個香水庫灌進收藏（只執行一次）
+const SEED_MARKER = "seeded_v1";
+async function seedIfFirstRun(rawItems) {
+  const already = rawItems.some((x) => x.id === SEED_MARKER);
+  if (already) return; // 已經灌過（或使用者已略過），不再動作
+  const userItems = rawItems.filter((x) => !x._marker);
+  if (userItems.length > 0) {
+    // 收藏已有使用者資料 → 只補 marker，不灌、不覆蓋
+    try { await store.put({ id: SEED_MARKER, savedAt: 0, _marker: true }); } catch (e) {}
+    return;
+  }
+  // 收藏為空 → 灌入整個香水庫
+  const now = Date.now();
+  const seededItems = LIBRARY.map((p, i) => ({
+    id: "seed_" + i,
+    savedAt: now - i,
+    name: p.name || p.nameZh,
+    nameZh: p.nameZh || p.name,
+    brand: p.brand,
+    year: p.year,
+    notes: { top: p.top || [], middle: p.middle || [], base: p.base || [] },
+    description: p.description || "",
+    longevity: p.longevity || 2,
+  }));
+  for (const item of seededItems) {
+    try { await store.put(item); } catch (e) {}
+  }
+  try { await store.put({ id: SEED_MARKER, savedAt: 0, _marker: true }); } catch (e) {}
+  ST.collection = seededItems.sort((a, b) => b.savedAt - a.savedAt);
+}
+
 (async function init() {
-  try { const items = await store.all(); ST.collection = items.sort((a,b)=>b.savedAt-a.savedAt); }
-  catch (e) { ST.collection = []; }
+  let raw = [];
+  try { raw = await store.all(); } catch (e) { raw = []; }
+  ST.collection = raw.filter((x) => !x._marker).sort((a,b)=>b.savedAt-a.savedAt);
+  try { await seedIfFirstRun(raw); } catch (e) {}
   ST.loading = false;
   render();
 })();
