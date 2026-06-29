@@ -411,11 +411,9 @@ function render() {
   let modalHTML = "";
   if (ST.showForm) {
     const f = ST.form;
-    const libOpts = LIBRARY.map((p, i) => '<option value="' + i + '">' + esc(p.brand) + '　' + esc(p.nameZh) + (p.verified ? '' : '（待補香調）') + '</option>').join("");
-    const libSel = !ST.editingId ? '<div style="margin-bottom:18px"><div class="f-label">從香水庫快速帶入（選填）</div><select class="input" id="lib-select"><option value="">— 手動輸入，或從這裡選一款 —</option>' + libOpts + '</select></div>' : "";
     const errHTML = ST.formError ? '<div class="f-err">' + esc(ST.formError) + '</div>' : "";
     modalHTML = '<div class="overlay" id="overlay"><div class="modal" id="modal"><button class="close" id="close-modal">' + IC.x() + '</button>' +
-      '<div class="modal-title">' + (ST.editingId ? '編輯香水' : '新增香水') + '</div>' + libSel +
+      '<div class="modal-title">' + (ST.editingId ? '編輯香水' : '新增香水') + '</div>' +
       '<div class="f-row"><div class="field"><div class="f-label">中文名稱</div><input class="input" id="f-nameZh" value="' + esc(f.nameZh) + '" placeholder="例如：檀香 33"></div><div class="field"><div class="f-label">原文名稱</div><input class="input" id="f-name" value="' + esc(f.name) + '" placeholder="Santal 33"></div></div>' +
       '<div class="f-row"><div class="field"><div class="f-label">品牌</div><input class="input" id="f-brand" value="' + esc(f.brand) + '" placeholder="Le Labo"></div><div class="field"><div class="f-label">年份</div><input class="input" id="f-year" value="' + esc(f.year) + '" placeholder="2011"></div></div>' +
       '<div class="field"><div class="f-label">前調（用、或逗號分隔）</div><input class="input" id="f-top" value="' + esc(f.top) + '" placeholder="小豆蔻、紫羅蘭"></div>' +
@@ -481,7 +479,6 @@ function bind() {
   const rsf = document.getElementById("reset-filter"); if (rsf) rsf.onclick = resetFilters;
   document.querySelectorAll("[data-edit]").forEach((b) => b.onclick = () => { const it = ST.collection.find((c)=>c.id===b.getAttribute("data-edit")); if (it) openEditForm(it); });
   document.querySelectorAll("[data-del]").forEach((b) => b.onclick = () => removeItem(b.getAttribute("data-del")));
-  const lib = document.getElementById("lib-select"); if (lib) lib.onchange = () => fillFromLibrary(lib.value);
   const close = document.getElementById("close-modal"); if (close) close.onclick = () => { ST.showForm = false; render(); };
   const ov = document.getElementById("overlay"); if (ov) ov.onclick = (e) => { if (e.target === ov) { syncFormFromInputs(); ST.showForm = false; render(); } };
   const save = document.getElementById("save-form"); if (save) save.onclick = saveForm;
