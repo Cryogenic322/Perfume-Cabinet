@@ -131,6 +131,11 @@
   .tarot-oracle { font-size: 14px; color: #D9BE74; line-height: 1.7; margin-top: 14px; font-style: italic; }
   .tarot-perfume { margin-top: 18px; padding-top: 16px; border-top: 1px solid #29344E; }
   .tarot-src { font-size: 11px; color: #5C6986; margin-top: 10px; }
+  .orient { display: inline-block; margin: 0 0 8px 8px; font-size: 11px; font-weight: 600; letter-spacing: 1px; padding: 2px 10px; border-radius: 999px; vertical-align: middle; }
+  .orient.up { color: #9FB58C; background: rgba(159,181,140,0.14); border: 1px solid rgba(159,181,140,0.35); }
+  .orient.rev { color: #D08C97; background: rgba(208,140,151,0.14); border: 1px solid rgba(208,140,151,0.35); }
+  .tarot-fortune { margin-top: 16px; padding: 14px 16px; background: rgba(201,168,92,0.07); border: 1px solid rgba(201,168,92,0.25); border-radius: 12px; font-size: 13px; line-height: 1.8; color: #D7DEEA; }
+  .fortune-label { display: flex; align-items: center; gap: 5px; font-size: 11px; letter-spacing: 1.5px; text-transform: uppercase; color: #C9A85C; font-weight: 600; margin-bottom: 7px; }
 
   .filter-head { display: flex; align-items: center; justify-content: space-between; }
   .toggle-filter { border: 1px solid #2E3A56; background: rgba(16,23,40,0.6); color: #D9BE74; font-size: 12px; font-weight: 600; padding: 5px 12px; border-radius: 8px; cursor: pointer; }
@@ -170,26 +175,37 @@ const TAROT_ELEMENTS = {
   earth: { zh: "土", like: ["檀香","雪松","木","廣藿香","香根草","苔蘚","岩蘭草","乳香","沉香","烏木","琥珀"], oracle: "今日宜紮根沉穩，讓木質的香氣成為你的盔甲，安靜而堅定地存在。" },
   aether: { zh: "靈", like: ["焚香","乳香","沒藥","鳶尾","麝香","龍涎香","檀香","樹脂"], oracle: "今日宜向內聆聽，讓神秘的香氣牽引直覺，未說出口的事終會明朗。" },
 };
-// 備援牌庫（API 連不上時用）— 萊德偉特部分大牌 + 元素
+// 備援牌庫（API 連不上時用）— 萊德偉特部分大牌 + 元素 + 正逆位
 const TAROT_FALLBACK = [
-  { name: "The Fool", nameZh: "愚者", upright: "新的開始、純真、冒險", element: "air" },
-  { name: "The Magician", nameZh: "魔術師", upright: "創造、意志、行動力", element: "air" },
-  { name: "The High Priestess", nameZh: "女祭司", upright: "直覺、神秘、潛意識", element: "water" },
-  { name: "The Empress", nameZh: "皇后", upright: "豐饒、滋養、感官", element: "earth" },
-  { name: "The Emperor", nameZh: "皇帝", upright: "秩序、權威、穩固", element: "fire" },
-  { name: "The Lovers", nameZh: "戀人", upright: "結合、選擇、和諧", element: "air" },
-  { name: "Strength", nameZh: "力量", upright: "勇氣、溫柔的力量、耐心", element: "fire" },
-  { name: "The Hermit", nameZh: "隱者", upright: "內省、獨處、尋找答案", element: "earth" },
-  { name: "Wheel of Fortune", nameZh: "命運之輪", upright: "轉變、機運、循環", element: "fire" },
-  { name: "The Star", nameZh: "星星", upright: "希望、療癒、靈感", element: "air" },
-  { name: "The Moon", nameZh: "月亮", upright: "幻象、潛意識、夢境", element: "water" },
-  { name: "The Sun", nameZh: "太陽", upright: "喜悅、活力、成功", element: "fire" },
-  { name: "The World", nameZh: "世界", upright: "圓滿、完成、整合", element: "earth" },
-  { name: "Ace of Cups", nameZh: "聖杯王牌", upright: "情感湧現、愛、直覺", element: "water" },
-  { name: "Ace of Wands", nameZh: "權杖王牌", upright: "靈感、熱情、創造", element: "fire" },
-  { name: "Ace of Swords", nameZh: "寶劍王牌", upright: "清晰、真相、突破", element: "air" },
-  { name: "Ace of Pentacles", nameZh: "錢幣王牌", upright: "豐盛、實現、根基", element: "earth" },
+  { name: "The Fool", nameZh: "愚者", upright: "新的開始、純真、冒險", reversed: "魯莽、猶豫、害怕踏出", element: "air" },
+  { name: "The Magician", nameZh: "魔術師", upright: "創造、意志、行動力", reversed: "拖延、能量未發揮、自我懷疑", element: "air" },
+  { name: "The High Priestess", nameZh: "女祭司", upright: "直覺、神秘、潛意識", reversed: "忽略內在聲音、秘密、混沌", element: "water" },
+  { name: "The Empress", nameZh: "皇后", upright: "豐饒、滋養、感官", reversed: "過度依賴、停滯、自我忽略", element: "earth" },
+  { name: "The Emperor", nameZh: "皇帝", upright: "秩序、權威、穩固", reversed: "固執、控制慾、失序", element: "fire" },
+  { name: "The Lovers", nameZh: "戀人", upright: "結合、選擇、和諧", reversed: "失衡、猶疑、價值衝突", element: "air" },
+  { name: "Strength", nameZh: "力量", upright: "勇氣、溫柔的力量、耐心", reversed: "自我懷疑、急躁、內在動搖", element: "fire" },
+  { name: "The Hermit", nameZh: "隱者", upright: "內省、獨處、尋找答案", reversed: "孤立、逃避、過度退縮", element: "earth" },
+  { name: "Wheel of Fortune", nameZh: "命運之輪", upright: "轉變、機運、循環", reversed: "停滯、抗拒改變、壞運循環", element: "fire" },
+  { name: "The Star", nameZh: "星星", upright: "希望、療癒、靈感", reversed: "失去信心、疲憊、迷惘", element: "air" },
+  { name: "The Moon", nameZh: "月亮", upright: "幻象、潛意識、夢境", reversed: "釋放恐懼、真相浮現、走出迷霧", element: "water" },
+  { name: "The Sun", nameZh: "太陽", upright: "喜悅、活力、成功", reversed: "暫時的陰霾、過度樂觀、延遲的快樂", element: "fire" },
+  { name: "The World", nameZh: "世界", upright: "圓滿、完成、整合", reversed: "未竟之事、延遲、卡關", element: "earth" },
+  { name: "Ace of Cups", nameZh: "聖杯王牌", upright: "情感湧現、愛、直覺", reversed: "情感壓抑、空虛、封閉", element: "water" },
+  { name: "Ace of Wands", nameZh: "權杖王牌", upright: "靈感、熱情、創造", reversed: "動力不足、延遲、猶豫", element: "fire" },
+  { name: "Ace of Swords", nameZh: "寶劍王牌", upright: "清晰、真相、突破", reversed: "混亂、誤解、思緒打結", element: "air" },
+  { name: "Ace of Pentacles", nameZh: "錢幣王牌", upright: "豐盛、實現、根基", reversed: "錯失機會、不穩、過度物質", element: "earth" },
 ];
+
+// 正逆位的運勢口吻模板（結合牌義關鍵字生成）
+function fortuneText(card, reversed) {
+  const meaning = reversed ? (card.reversed || card.upright) : card.upright;
+  const el = (TAROT_ELEMENTS[card.element] || TAROT_ELEMENTS.aether).zh;
+  if (reversed) {
+    return "逆位的「" + card.nameZh + "」提醒你：今天或許帶著「" + meaning + "」的課題。別急著對抗，這張牌要你慢下來、向內看。" + el + "元素的香氣會陪你穩住節奏，把卡住的地方輕輕鬆開。";
+  }
+  return "正位的「" + card.nameZh + "」為你開場：今天的關鍵字是「" + meaning + "」。順著這股能量走，會比平常更順。讓" + el + "元素的香氣成為今天的註腳，提醒自己正走在對的方向。";
+}
+
 // 牌名 → 中文（API 回傳英文時對照；查不到就顯示英文）
 const TAROT_NAME_ZH = {};
 TAROT_FALLBACK.forEach((c) => { TAROT_NAME_ZH[c.name] = c.nameZh; });
@@ -372,7 +388,7 @@ async function drawTarot(force) {
   const saved = ST.tarotSaved;
   const tk = todayKey();
   if (!force && saved && saved.day === tk) {
-    ST.tarot = { card: saved.card, perfume: ST.collection.find((c) => c.id === saved.perfumeId) || perfumeForElement(saved.card.element, saved.card.name + tk), oracle: saved.oracle, flipped: false };
+    ST.tarot = { card: saved.card, reversed: saved.reversed, fortune: saved.fortune, perfume: ST.collection.find((c) => c.id === saved.perfumeId) || perfumeForElement(saved.card.element, saved.card.name + tk), oracle: saved.oracle, flipped: false };
     render();
     return;
   }
@@ -384,12 +400,12 @@ async function drawTarot(force) {
     const j = await r.json();
     const c = j && j.cards && j.cards[0];
     if (c) {
-      // API 的 type: "major"/"minor"，用 suit/value 推元素；若有 meaning 取關鍵字
       const elemGuess = guessElement(c);
       card = {
         name: c.name,
         nameZh: TAROT_NAME_ZH[c.name] || c.name,
-        upright: c.meaning_up ? c.meaning_up.split(/[,.;]/)[0].trim() : "",
+        upright: c.meaning_up ? c.meaning_up.split(/[,.;]/).slice(0,2).join("、").trim() : "",
+        reversed: c.meaning_rev ? c.meaning_rev.split(/[,.;]/).slice(0,2).join("、").trim() : "",
         element: elemGuess,
         source: "api",
       };
@@ -399,15 +415,19 @@ async function drawTarot(force) {
   if (!card) {
     const seed = tk + (force ? String(Date.now()) : "");
     const fb = seededPick(TAROT_FALLBACK, seed) || TAROT_FALLBACK[0];
-    card = { name: fb.name, nameZh: fb.nameZh, upright: fb.upright, element: fb.element, source: "fallback" };
+    card = { name: fb.name, nameZh: fb.nameZh, upright: fb.upright, reversed: fb.reversed, element: fb.element, source: "fallback" };
   }
+  // 決定正逆位：以日期+牌名為種子，同一天固定
+  const orient = seededPick([false, false, true, true], card.name + tk + (force ? String(Date.now()) : ""));
+  const reversed = !!orient;
   const seedStr = card.name + tk;
   const perfume = perfumeForElement(card.element, seedStr);
   const oracle = (TAROT_ELEMENTS[card.element] || TAROT_ELEMENTS.aether).oracle;
-  ST.tarot = { card, perfume, oracle, flipped: false };
+  const fortune = fortuneText(card, reversed);
+  ST.tarot = { card, reversed, fortune, perfume, oracle, flipped: false };
   ST.tarotLoading = false;
   // 存今日結果
-  ST.tarotSaved = { day: tk, card, perfumeId: perfume ? perfume.id : null, oracle };
+  ST.tarotSaved = { day: tk, card, reversed, fortune, perfumeId: perfume ? perfume.id : null, oracle };
   try { await store.put({ id: "tarot_today", _marker: true, value: ST.tarotSaved }); } catch (e) {}
   render();
 }
@@ -624,7 +644,12 @@ function render() {
       const t = ST.tarot; const p = t.perfume;
       const elZh = (TAROT_ELEMENTS[t.card.element] || TAROT_ELEMENTS.aether).zh;
       const cardName = t.card.nameZh && t.card.nameZh !== t.card.name ? (t.card.nameZh + ' · ' + t.card.name) : t.card.name;
-      const up = t.card.upright ? '<div class="tarot-up">' + esc(t.card.upright) + '</div>' : "";
+      const orientBadge = t.reversed
+        ? '<span class="orient rev">逆位 ↓</span>'
+        : '<span class="orient up">正位 ↑</span>';
+      const meaning = t.reversed ? (t.card.reversed || t.card.upright) : t.card.upright;
+      const up = meaning ? '<div class="tarot-up">' + esc(meaning) + '</div>' : "";
+      const fortune = t.fortune ? '<div class="tarot-fortune"><div class="fortune-label">' + IC.sparkles() + ' 今日運勢</div>' + esc(t.fortune) + '</div>' : "";
       let pf = '<div class="hint">收藏裡還沒有適合的香水。</div>';
       if (p) {
         const badge = p.longevity ? '<span class="long-badge">持香 ' + LONG_LABELS[p.longevity] + '</span>' : "";
@@ -632,10 +657,10 @@ function render() {
         pf = '<div class="tarot-perfume"><div class="rec-tag">' + IC.sparkles() + ' 今日幸運香水</div><div class="rec-name">' + esc(p.nameZh) + ' ' + orig + '</div><div class="rl-brand">' + esc(p.brand || "—") + '</div>' + badge + pyramidHTML(p.notes, true) + '</div>';
       }
       const src = t.card.source === "fallback" ? '<div class="tarot-src">（離線牌庫）</div>' : "";
-      body = '<div class="tarot-result"><div class="tarot-card front">' +
-        '<div class="tarot-elem">' + elZh + '</div><div class="tarot-name">' + esc(cardName) + '</div>' + up +
+      body = '<div class="tarot-result"><div class="tarot-card front' + (t.reversed ? ' reversed' : '') + '">' +
+        '<div class="tarot-elem">' + elZh + '</div>' + orientBadge + '<div class="tarot-name">' + esc(cardName) + '</div>' + up +
         '<div class="tarot-oracle">「' + esc(t.oracle) + '」</div></div>' +
-        pf + src +
+        fortune + pf + src +
         '<button class="reset-btn" id="redraw" style="margin-top:16px">重新抽一張</button></div>';
     }
     tarotPanel = '<div class="narrow panel"><div class="w-title">本日幸運香水</div><div class="w-sub">抽一張塔羅牌，由牌的元素為你牽引出今日最適合的香水。同一天抽到的牌固定，明日換新。</div>' + body + '</div>';
