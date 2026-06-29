@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
 <meta name="apple-mobile-web-app-capable" content="yes" />
 <meta name="apple-mobile-web-app-title" content="香水收藏室" />
-<meta name="theme-color" content="#F3EDE2" />
+<meta name="theme-color" content="#0B1120" />
 <link rel="manifest" href="manifest.webmanifest" />
 <link rel="icon" type="image/svg+xml" href="icon.svg" />
 <link rel="apple-touch-icon" href="icon.svg" />
@@ -16,7 +16,7 @@
 <style>
   * { box-sizing: border-box; }
   html, body { margin: 0; padding: 0; }
-  body { background: #F3EDE2; background-image: radial-gradient(circle at 20% 0%, #F8F4EC 0%, #F3EDE2 45%); color: #1A1614; font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; }
+  body { background: #0B1120; background-image: radial-gradient(1200px 600px at 50% -10%, #1A2640 0%, #0E1729 38%, #0B1120 70%); color: #E8EDF5; font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; }
   input, select, button, textarea { font-family: inherit; }
   .spin { animation: spin 0.8s linear infinite; }
   @keyframes spin { to { transform: rotate(360deg); } }
@@ -25,86 +25,104 @@
   .wide { max-width: 960px; margin: 0 auto; }
   .serif { font-family: 'Cormorant Garamond', Georgia, serif; }
 
-  .kicker { font-size: 11px; letter-spacing: 3px; text-transform: uppercase; color: #8A8178; }
-  h1.title { font-family: 'Cormorant Garamond', Georgia, serif; font-size: 46px; font-weight: 600; margin: 0 0 8px; line-height: 1; letter-spacing: -0.5px; }
-  .subtitle { font-size: 14px; color: #6B6258; margin: 0; max-width: 460px; }
+  .kicker { font-size: 11px; letter-spacing: 3px; text-transform: uppercase; color: #C9A85C; }
+  h1.title { font-family: 'Cormorant Garamond', Georgia, serif; font-size: 46px; font-weight: 600; margin: 0 0 8px; line-height: 1; letter-spacing: -0.5px; color: #F3ECDA; }
+  .subtitle { font-size: 14px; color: #97A3BB; margin: 0; max-width: 460px; }
 
-  .btn-add { border: none; background: #1A1614; color: #F3EDE2; font-size: 14px; font-weight: 600; padding: 12px 20px; border-radius: 12px; cursor: pointer; display: inline-flex; align-items: center; gap: 7px; }
+  .btn-add { border: 1px solid #C9A85C; background: linear-gradient(180deg, #D9BE74, #C29A4C); color: #1A1424; font-size: 14px; font-weight: 600; padding: 12px 20px; border-radius: 12px; cursor: pointer; display: inline-flex; align-items: center; gap: 7px; box-shadow: 0 4px 18px rgba(201,168,92,0.18); }
 
-  .panel { background: #FFFDF9; border: 1px solid #E2D8C7; border-radius: 16px; padding: 20px; box-shadow: 0 1px 2px rgba(60,40,20,0.04); margin-top: 18px; }
-  .w-title { font-family: 'Cormorant Garamond', Georgia, serif; font-size: 22px; font-weight: 600; }
-  .w-sub { font-size: 13px; color: #6B6258; margin-top: 2px; margin-bottom: 14px; }
+  .panel { background: rgba(20,28,46,0.72); border: 1px solid #29344E; border-radius: 16px; padding: 20px; box-shadow: 0 8px 40px rgba(0,0,0,0.35); backdrop-filter: blur(4px); margin-top: 18px; }
+  .w-title { font-family: 'Cormorant Garamond', Georgia, serif; font-size: 22px; font-weight: 600; color: #F3ECDA; }
+  .w-sub { font-size: 13px; color: #97A3BB; margin-top: 2px; margin-bottom: 14px; }
   .w-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(100px, 1fr)); gap: 9px; }
-  .chip { display: flex; flex-direction: column; align-items: center; gap: 2px; padding: 12px 8px; border: 1px solid #E2D8C7; border-radius: 12px; background: #FFFDF9; cursor: pointer; }
-  .chip.active { border-color: #C08A3E; background: #C08A3E12; box-shadow: 0 0 0 1px #C08A3E; }
+  .chip { display: flex; flex-direction: column; align-items: center; gap: 2px; padding: 12px 8px; border: 1px solid #2E3A56; border-radius: 12px; background: rgba(16,23,40,0.6); cursor: pointer; transition: border-color .15s, background .15s; }
+  .chip:hover { border-color: #4A5A80; }
+  .chip.active { border-color: #C9A85C; background: rgba(201,168,92,0.12); box-shadow: 0 0 0 1px #C9A85C; }
   .chip .emoji { font-size: 22px; line-height: 1; }
-  .chip .c-label { font-size: 13px; font-weight: 600; color: #1A1614; margin-top: 3px; }
-  .chip .c-sub { font-size: 10px; color: #8A8178; }
-  .hint { font-size: 13px; color: #8A8178; margin-top: 14px; display: flex; align-items: center; gap: 6px; }
-  .wx-err { font-size: 12.5px; color: #6B6258; background: #F3EDE2; border: 1px solid #E2D8C7; border-radius: 10px; padding: 10px 12px; margin-bottom: 12px; line-height: 1.5; }
-  .retry { display: block; margin-top: 8px; border: 1px solid #C08A3E; background: transparent; color: #9C6A1E; font-size: 12px; font-weight: 600; padding: 6px 12px; border-radius: 8px; cursor: pointer; }
-  .loc-btn { margin-bottom: 14px; border: 1px solid #E2D8C7; background: #F8F4EC; color: #6B5430; font-size: 13px; font-weight: 600; padding: 9px 14px; border-radius: 10px; cursor: pointer; }
-  .loc-btn:hover { border-color: #C08A3E; }
+  .chip .c-label { font-size: 13px; font-weight: 600; color: #E8EDF5; margin-top: 3px; }
+  .chip .c-sub { font-size: 10px; color: #8B97AD; }
+  .hint { font-size: 13px; color: #8B97AD; margin-top: 14px; display: flex; align-items: center; gap: 6px; }
+  .wx-err { font-size: 12.5px; color: #B9C2D4; background: rgba(10,16,30,0.6); border: 1px solid #2E3A56; border-radius: 10px; padding: 10px 12px; margin-bottom: 12px; line-height: 1.5; }
+  .retry { display: block; margin-top: 8px; border: 1px solid #C9A85C; background: transparent; color: #D9BE74; font-size: 12px; font-weight: 600; padding: 6px 12px; border-radius: 8px; cursor: pointer; }
+  .loc-btn { margin-bottom: 14px; border: 1px solid #2E3A56; background: rgba(26,38,64,0.6); color: #D9BE74; font-size: 13px; font-weight: 600; padding: 9px 14px; border-radius: 10px; cursor: pointer; }
+  .loc-btn:hover { border-color: #C9A85C; }
 
-  .rec-card { display: flex; gap: 16px; margin-top: 18px; padding-top: 16px; border-top: 1px solid #EFE7DA; }
-  .rec-img { width: 84px; height: 104px; flex-shrink: 0; border-radius: 10px; overflow: hidden; background: #F3EDE2; border: 1px solid #E2D8C7; display: flex; align-items: center; justify-content: center; }
-  .rec-tag { display: inline-flex; align-items: center; gap: 4px; font-size: 10px; letter-spacing: 1.5px; text-transform: uppercase; color: #C08A3E; font-weight: 600; }
-  .rec-name { font-family: 'Cormorant Garamond', Georgia, serif; font-size: 23px; font-weight: 600; line-height: 1.1; margin-top: 3px; }
-  .rec-orig { font-size: 12px; font-style: italic; color: #6B6258; margin-top: 1px; }
-  .rec-reason { font-size: 13px; color: #3A332C; line-height: 1.6; margin: 8px 0 0; }
-  .long-badge { display: inline-block; margin-top: 8px; font-size: 11px; font-weight: 600; color: #6E7A5E; background: #6E7A5E15; border: 1px solid #6E7A5E33; border-radius: 999px; padding: 2px 10px; }
+  .rec-card { display: flex; gap: 16px; margin-top: 18px; padding-top: 16px; border-top: 1px solid #29344E; }
+  .rec-img { width: 84px; height: 104px; flex-shrink: 0; border-radius: 10px; overflow: hidden; background: rgba(10,16,30,0.6); border: 1px solid #2E3A56; display: flex; align-items: center; justify-content: center; }
+  .rec-tag { display: inline-flex; align-items: center; gap: 4px; font-size: 10px; letter-spacing: 1.5px; text-transform: uppercase; color: #C9A85C; font-weight: 600; }
+  .rec-name { font-family: 'Cormorant Garamond', Georgia, serif; font-size: 23px; font-weight: 600; line-height: 1.1; margin-top: 3px; color: #F3ECDA; }
+  .rec-orig { font-size: 12px; font-style: italic; color: #97A3BB; margin-top: 1px; }
+  .rec-reason { font-size: 13px; color: #C4CDDD; line-height: 1.6; margin: 8px 0 0; }
+  .long-badge { display: inline-block; margin-top: 8px; font-size: 11px; font-weight: 600; color: #9FB58C; background: rgba(159,181,140,0.12); border: 1px solid rgba(159,181,140,0.28); border-radius: 999px; padding: 2px 10px; }
 
-  .rec-list { margin-top: 18px; padding-top: 16px; border-top: 1px solid #EFE7DA; }
+  .rec-list { margin-top: 18px; padding-top: 16px; border-top: 1px solid #29344E; }
   .rec-head { display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px; }
-  .rec-count { font-size: 11px; color: #8A8178; background: #E2D8C7; border-radius: 999px; padding: 2px 9px; }
-  .rec-row { display: flex; gap: 12px; align-items: flex-start; padding: 11px 0; border-bottom: 1px solid #F1EADD; }
+  .rec-count { font-size: 11px; color: #B9C2D4; background: #29344E; border-radius: 999px; padding: 2px 9px; }
+  .rec-row { display: flex; gap: 12px; align-items: flex-start; padding: 11px 0; border-bottom: 1px solid #202B42; }
   .rec-row:last-child { border-bottom: none; }
-  .rl-rank { flex-shrink: 0; width: 24px; height: 24px; border-radius: 999px; background: #C08A3E18; border: 1px solid #C08A3E44; color: #9C6A1E; font-size: 12px; font-weight: 600; display: flex; align-items: center; justify-content: center; margin-top: 1px; }
+  .rl-rank { flex-shrink: 0; width: 24px; height: 24px; border-radius: 999px; background: rgba(201,168,92,0.14); border: 1px solid rgba(201,168,92,0.4); color: #D9BE74; font-size: 12px; font-weight: 600; display: flex; align-items: center; justify-content: center; margin-top: 1px; }
   .rl-body { flex: 1; min-width: 0; }
-  .rl-title { font-family: 'Cormorant Garamond', Georgia, serif; font-size: 19px; font-weight: 600; line-height: 1.15; }
-  .rl-orig { font-family: 'Inter', sans-serif; font-size: 12px; font-style: italic; color: #8A8178; font-weight: 400; }
-  .rl-brand { font-size: 10px; letter-spacing: 1.2px; text-transform: uppercase; color: #8A8178; margin-top: 2px; }
-  .rec-hits { margin-top: 6px; font-size: 11px; color: #6B6258; display: flex; flex-wrap: wrap; gap: 4px; align-items: center; }
-  .hit-pill { font-size: 11px; padding: 1px 8px; border-radius: 999px; background: #C08A3E14; border: 1px solid #C08A3E2E; color: #6B5430; }
+  .rl-title { font-family: 'Cormorant Garamond', Georgia, serif; font-size: 19px; font-weight: 600; line-height: 1.15; color: #F3ECDA; }
+  .rl-orig { font-family: 'Inter', sans-serif; font-size: 12px; font-style: italic; color: #8B97AD; font-weight: 400; }
+  .rl-brand { font-size: 10px; letter-spacing: 1.2px; text-transform: uppercase; color: #8B97AD; margin-top: 2px; }
+  .rec-hits { margin-top: 6px; font-size: 11px; color: #97A3BB; display: flex; flex-wrap: wrap; gap: 4px; align-items: center; }
+  .hit-pill { font-size: 11px; padding: 1px 8px; border-radius: 999px; background: rgba(201,168,92,0.12); border: 1px solid rgba(201,168,92,0.3); color: #D9BE74; }
   .rl-side { flex-shrink: 0; }
   .rl-side .long-badge { margin-top: 0; }
 
-  .col-head { margin: 44px auto 16px; display: flex; align-items: baseline; gap: 10px; padding-top: 24px; border-top: 1px solid #E2D8C7; }
-  .col-title { font-family: 'Cormorant Garamond', Georgia, serif; font-size: 24px; font-weight: 600; }
-  .count { font-size: 12px; color: #8A8178; background: #E2D8C7; border-radius: 999px; padding: 2px 9px; }
-  .empty { text-align: center; color: #8A8178; font-size: 14px; padding: 40px 0; }
+  .col-head { margin: 44px auto 16px; display: flex; align-items: baseline; gap: 10px; padding-top: 24px; border-top: 1px solid #29344E; cursor: pointer; }
+  .col-arrow { margin-left: auto; font-size: 12px; font-weight: 600; color: #D9BE74; align-self: center; }
+  .col-title { font-family: 'Cormorant Garamond', Georgia, serif; font-size: 24px; font-weight: 600; color: #F3ECDA; }
+  .count { font-size: 12px; color: #B9C2D4; background: #29344E; border-radius: 999px; padding: 2px 9px; }
+  .empty { text-align: center; color: #8B97AD; font-size: 14px; padding: 40px 0; }
 
   .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 18px; }
-  .card { position: relative; background: #FFFDF9; border: 1px solid #E2D8C7; border-radius: 16px; padding: 16px; box-shadow: 0 1px 3px rgba(60,40,20,0.04); }
+  .card { position: relative; background: rgba(20,28,46,0.72); border: 1px solid #29344E; border-radius: 16px; padding: 16px; box-shadow: 0 6px 26px rgba(0,0,0,0.3); }
   .card-actions { position: absolute; top: 12px; right: 12px; display: flex; gap: 6px; z-index: 2; }
-  .icon-btn { border: none; background: #FFFDF9; border-radius: 8px; padding: 6px; cursor: pointer; color: #8A8178; box-shadow: 0 1px 3px rgba(0,0,0,0.08); display: inline-flex; }
-  .icon-btn.danger { color: #9C5C5C; }
-  .card-img { width: 100%; height: 140px; border-radius: 11px; overflow: hidden; background: #F3EDE2; border: 1px solid #E2D8C7; margin-bottom: 12px; display: flex; align-items: center; justify-content: center; }
-  .c-brand { font-size: 10px; letter-spacing: 1.2px; text-transform: uppercase; color: #8A8178; }
-  .c-name { font-family: 'Cormorant Garamond', Georgia, serif; font-size: 21px; font-weight: 600; line-height: 1.1; margin-top: 2px; }
-  .c-orig { font-size: 12px; font-style: italic; color: #6B6258; margin-top: 1px; }
-  .c-desc { font-size: 12px; color: #6B6258; margin: 8px 0 0; line-height: 1.5; }
+  .icon-btn { border: 1px solid #2E3A56; background: rgba(16,23,40,0.85); border-radius: 8px; padding: 6px; cursor: pointer; color: #97A3BB; box-shadow: 0 1px 3px rgba(0,0,0,0.3); display: inline-flex; }
+  .icon-btn.danger { color: #C97D86; }
+  .card-img { width: 100%; height: 140px; border-radius: 11px; overflow: hidden; background: rgba(10,16,30,0.6); border: 1px solid #2E3A56; margin-bottom: 12px; display: flex; align-items: center; justify-content: center; }
+  .c-brand { font-size: 10px; letter-spacing: 1.2px; text-transform: uppercase; color: #8B97AD; }
+  .c-name { font-family: 'Cormorant Garamond', Georgia, serif; font-size: 21px; font-weight: 600; line-height: 1.1; margin-top: 2px; color: #F3ECDA; }
+  .c-orig { font-size: 12px; font-style: italic; color: #97A3BB; margin-top: 1px; }
+  .c-desc { font-size: 12px; color: #A6B0C4; margin: 8px 0 0; line-height: 1.5; }
 
   .pyramid { margin-top: 10px; display: flex; flex-direction: column; gap: 7px; }
   .tier-row { display: flex; gap: 10px; align-items: flex-start; }
   .tier-head { display: flex; flex-direction: column; align-items: flex-start; min-width: 40px; flex-shrink: 0; }
   .tier-label { font-family: 'Cormorant Garamond', Georgia, serif; font-size: 15px; line-height: 1; font-weight: 600; }
-  .tier-sub { font-size: 9px; letter-spacing: 1px; color: #8A8178; text-transform: uppercase; margin-top: 2px; }
+  .tier-sub { font-size: 9px; letter-spacing: 1px; color: #8B97AD; text-transform: uppercase; margin-top: 2px; }
   .note-pills { display: flex; flex-wrap: wrap; gap: 5px; }
-  .pill { font-size: 11px; padding: 2px 9px; border-radius: 999px; color: #3A332C; }
+  .pill { font-size: 11px; padding: 2px 9px; border-radius: 999px; color: #D7DEEA; }
 
-  .overlay { position: fixed; inset: 0; background: rgba(26,22,20,0.45); display: flex; align-items: flex-start; justify-content: center; padding: 40px 16px; overflow-y: auto; z-index: 50; }
-  .modal { position: relative; width: 100%; max-width: 520px; background: #FFFDF9; border: 1px solid #E2D8C7; border-radius: 18px; padding: 26px; box-shadow: 0 16px 50px rgba(40,28,16,0.28); }
-  .close { position: absolute; top: 16px; right: 16px; border: none; background: transparent; cursor: pointer; color: #8A8178; padding: 4px; display: inline-flex; }
-  .modal-title { font-family: 'Cormorant Garamond', Georgia, serif; font-size: 28px; font-weight: 600; margin-bottom: 18px; }
+  .overlay { position: fixed; inset: 0; background: rgba(6,10,20,0.66); display: flex; align-items: flex-start; justify-content: center; padding: 40px 16px; overflow-y: auto; z-index: 50; backdrop-filter: blur(2px); }
+  .modal { position: relative; width: 100%; max-width: 520px; background: #131B2E; border: 1px solid #29344E; border-radius: 18px; padding: 26px; box-shadow: 0 20px 60px rgba(0,0,0,0.55); }
+  .close { position: absolute; top: 16px; right: 16px; border: none; background: transparent; cursor: pointer; color: #8B97AD; padding: 4px; display: inline-flex; }
+  .modal-title { font-family: 'Cormorant Garamond', Georgia, serif; font-size: 28px; font-weight: 600; margin-bottom: 18px; color: #F3ECDA; }
   .f-row { display: flex; gap: 12px; }
   .field { flex: 1; margin-bottom: 12px; }
-  .f-label { font-size: 11px; letter-spacing: 0.5px; color: #8A8178; margin-bottom: 5px; font-weight: 500; }
-  .input { width: 100%; border: 1px solid #E2D8C7; border-radius: 9px; padding: 9px 12px; font-size: 14px; color: #1A1614; background: #fff; outline: none; }
-  .f-err { font-size: 13px; color: #9C5C5C; background: #9C5C5C12; border: 1px solid #9C5C5C33; border-radius: 9px; padding: 9px 12px; margin-top: 4px; margin-bottom: 12px; }
-  .save-btn { margin-top: 14px; width: 100%; border: none; background: #C08A3E; color: #fff; font-size: 14px; font-weight: 600; padding: 12px; border-radius: 11px; cursor: pointer; }
+  .f-label { font-size: 11px; letter-spacing: 0.5px; color: #8B97AD; margin-bottom: 5px; font-weight: 500; }
+  .input { width: 100%; border: 1px solid #2E3A56; border-radius: 9px; padding: 9px 12px; font-size: 14px; color: #E8EDF5; background: #0E1626; outline: none; }
+  .input:focus { border-color: #C9A85C; }
+  .input::placeholder { color: #5C6986; }
+  select.input option { background: #131B2E; color: #E8EDF5; }
+  .f-err { font-size: 13px; color: #E2A0A8; background: rgba(201,125,134,0.12); border: 1px solid rgba(201,125,134,0.3); border-radius: 9px; padding: 9px 12px; margin-top: 4px; margin-bottom: 12px; }
+  .save-btn { margin-top: 14px; width: 100%; border: none; background: linear-gradient(180deg, #D9BE74, #C29A4C); color: #1A1424; font-size: 14px; font-weight: 600; padding: 12px; border-radius: 11px; cursor: pointer; box-shadow: 0 4px 18px rgba(201,168,92,0.18); }
 
   @media (max-width: 600px) { .grid { grid-template-columns: 1fr; } }
+
+  .filter-head { display: flex; align-items: center; justify-content: space-between; }
+  .toggle-filter { border: 1px solid #2E3A56; background: rgba(16,23,40,0.6); color: #D9BE74; font-size: 12px; font-weight: 600; padding: 5px 12px; border-radius: 8px; cursor: pointer; }
+  .filter-sect { margin-top: 16px; }
+  .f-sect-title { font-size: 12px; letter-spacing: 0.5px; color: #97A3BB; margin-bottom: 8px; font-weight: 600; }
+  .fchip-row { display: flex; flex-wrap: wrap; gap: 7px; }
+  .fchip { border: 1px solid #2E3A56; background: rgba(16,23,40,0.6); color: #C4CDDD; font-size: 12.5px; padding: 6px 13px; border-radius: 999px; cursor: pointer; transition: all .15s; }
+  .fchip:hover { border-color: #4A5A80; }
+  .fchip.on { border-color: #C9A85C; background: rgba(201,168,92,0.16); color: #E0C078; font-weight: 600; }
+  .filter-btns { display: flex; gap: 10px; margin-top: 18px; align-items: stretch; }
+  .reset-btn { border: 1px solid #2E3A56; background: transparent; color: #97A3BB; font-size: 13px; font-weight: 600; padding: 0 18px; border-radius: 11px; cursor: pointer; }
+  .reset-btn:hover { border-color: #4A5A80; }
+
 </style>
 </head>
 <body>
@@ -115,28 +133,58 @@
 
 // ── 資料 ──────────────────────────────────────────────
 const NOTE_TIERS = [
-  { key: "top", label: "前調", sub: "Top", color: "#C08A3E" },
-  { key: "middle", label: "中調", sub: "Heart", color: "#9C5C5C" },
-  { key: "base", label: "後調", sub: "Base", color: "#6E7A5E" },
+  { key: "top", label: "前調", sub: "Top", color: "#D9BE74" },
+  { key: "middle", label: "中調", sub: "Heart", color: "#D08C97" },
+  { key: "base", label: "後調", sub: "Base", color: "#9FB58C" },
 ];
-
-const TEMP_TIERS = [
-  { key: "scorching", label: "酷暑", emoji: "🔥", hint: "> 30°C", min: 30, max: 99 },
-  { key: "warm", label: "夏暖", emoji: "☀️", hint: "25–30°C", min: 25, max: 30 },
-  { key: "comfy", label: "舒適", emoji: "🌤️", hint: "18–25°C", min: 18, max: 25 },
-  { key: "cool", label: "微涼", emoji: "🍂", hint: "10–18°C", min: 10, max: 18 },
-  { key: "cold", label: "寒冷", emoji: "❄️", hint: "< 10°C", min: -50, max: 10 },
-];
-
-const WEATHER_PREFS = {
-  scorching: { like: ["柑橘","佛手柑","檸檬","葡萄柚","萊姆","海洋","水生","海鹽","綠葉","薄荷","青草","黃瓜","橙花","茶"], prefLong: 1, blurb: "酷暑裡香味擴散得又快又猛，清淡通透的柑橘水生最不悶人。" },
-  warm: { like: ["柑橘","佛手柑","橙花","白花","茉莉","綠葉","梨","無花果","荔枝","椰子","鹽","麝香","茶","小蒼蘭"], prefLong: 1, blurb: "夏暖的日子適合明亮的花果與清爽白麝香，別太厚重。" },
-  comfy: { like: ["茉莉","玫瑰","鳶尾","白花","綠葉","茶","麝香","鼠尾草","紫羅蘭","小蒼蘭","牡丹"], prefLong: 2, blurb: "舒適的溫度最百搭，柔和花香與清雅木質都合適。" },
-  cool: { like: ["木質","檀香","雪松","廣藿香","焚香","茶","肉桂","蘋果","無花果","香根草","皮革","菸草","苔蘚"], prefLong: 2, blurb: "微涼時節適合帶點暖意的木質與辛香。" },
-  cold: { like: ["琥珀","香草","焚香","麝香","檀香","廣藿香","皮革","煙草","菸草","肉桂","丁香","可可","咖啡","東方","乳香","沉香","烏木","零陵香豆"], prefLong: 3, blurb: "寒冷時香氣擴散慢，溫暖濃郁、持久有包覆感的東方木質最撐得住。" },
-};
 
 const LONG_LABELS = { 1: "清淡", 2: "適中", 3: "持久" };
+
+// ── 多維度篩選：香調 → 家族 / 心情 / 場合（自動推測，關鍵字比對） ──
+const FACETS = {
+  season: {
+    title: "季節",
+    options: [
+      { key: "spring", label: "🌸 春", kw: ["茉莉","玫瑰","鳶尾","橙花","小蒼蘭","牡丹","紫羅蘭","白花","綠葉","梨","青蘋果","茶","鈴蘭","桃","荔枝"] },
+      { key: "summer", label: "🌊 夏", kw: ["柑橘","佛手柑","檸檬","葡萄柚","萊姆","海洋","水生","海鹽","綠葉","薄荷","青草","黃瓜","橙花","無花果","椰子","茶"] },
+      { key: "autumn", label: "🍂 秋", kw: ["木質","檀香","雪松","廣藿香","焚香","茶","肉桂","蘋果","無花果","香根草","皮革","菸草","苔蘚","琥珀","乳香","香料"] },
+      { key: "winter", label: "❄️ 冬", kw: ["琥珀","香草","焚香","麝香","檀香","廣藿香","皮革","煙草","菸草","肉桂","丁香","可可","咖啡","東方","乳香","沉香","烏木","零陵香豆","威士忌","巧克力"] },
+    ],
+  },
+  family: {
+    title: "香調家族",
+    options: [
+      { key: "citrus", label: "柑橘", kw: ["柑橘","佛手柑","檸檬","葡萄柚","萊姆","橙","苦柚","金桔"] },
+      { key: "floral", label: "花香", kw: ["玫瑰","茉莉","鳶尾","橙花","晚香玉","紫羅蘭","依蘭","牡丹","鈴蘭","花","蘭花"] },
+      { key: "woody", label: "木質", kw: ["檀香","雪松","木","癒創木","香杉","杉樹","廣藿香","岩蘭草","香根草"] },
+      { key: "oriental", label: "東方辛香", kw: ["琥珀","香草","焚香","乳香","沒藥","肉桂","丁香","番紅花","小豆蔻","胡椒","龍涎香","東方","樹脂"] },
+      { key: "fougere", label: "馥奇草本", kw: ["薰衣草","鼠尾草","羅勒","茴香","綠葉","青草","苦艾","艾草","尤加利","薄荷","茶"] },
+      { key: "leather", label: "皮革菸草", kw: ["皮革","菸草","煙草","焦油","煙燻","威士忌","龍舌蘭"] },
+      { key: "gourmand", label: "美食甜香", kw: ["巧克力","可可","咖啡","焦糖","香草莢","蜜","杏仁","椰子","太妃"] },
+      { key: "aquatic", label: "水生綠意", kw: ["海洋","水生","海鹽","鹽","海藻","無花果","梨","青蘋果","黃瓜","綠"] },
+    ],
+  },
+  mood: {
+    title: "心情",
+    options: [
+      { key: "fresh", label: "清新提神", kw: ["柑橘","佛手柑","檸檬","葡萄柚","薄荷","綠葉","青草","尤加利","海鹽","水生"] },
+      { key: "calm", label: "沉靜療癒", kw: ["焚香","乳香","檀香","茶","岩蘭草","鼠尾草","木","苔蘚"] },
+      { key: "warm", label: "溫暖包覆", kw: ["琥珀","香草","肉桂","焦糖","可可","咖啡","蜜","零陵香豆"] },
+      { key: "sensual", label: "性感神秘", kw: ["皮革","麝貓","龍涎香","晚香玉","廣藿香","沒藥","菸草","煙燻","威士忌","曼陀羅"] },
+      { key: "clean", label: "優雅乾淨", kw: ["麝香","鳶尾","肥皂","白花","醛","棉","白茶"] },
+    ],
+  },
+  occasion: {
+    title: "場合",
+    options: [
+      { key: "work", label: "日常上班", kw: ["麝香","茶","柑橘","鳶尾","綠葉","雪松","白花"] },
+      { key: "date", label: "約會", kw: ["玫瑰","晚香玉","琥珀","香草","皮革","廣藿香","麝貓","依蘭"] },
+      { key: "home", label: "居家放鬆", kw: ["焚香","檀香","茶","薰衣草","木","香草","乳香"] },
+      { key: "formal", label: "正式場合", kw: ["皮革","鳶尾","木","琥珀","檀香","乳香","菸草"] },
+      { key: "summer", label: "夏日外出", kw: ["柑橘","海鹽","水生","無花果","綠葉","薄荷","橙花","茶"] },
+    ],
+  },
+};
 
 const LIBRARY = [
   { nameZh:"廣藿之匣", name:"Babylon", brand:"Penhaligon's", year:"2019", top:["肉豆蔻","番紅花","芫荽"], middle:["莎草（Cypriol）"], base:["香草","檀香","雪松"], description:"東方辛香木質，溫暖的香料與奶香般的香草，沉穩內斂。", longevity:3, verified:true },
@@ -206,13 +254,13 @@ const parseNotes = (str) => String(str||"").split(/[、,，\n]/).map((s)=>s.trim
 
 // SVG 圖示
 const IC = {
-  droplet: (sz=24,c="#C08A3E",sw=1.2) => '<svg width="'+sz+'" height="'+sz+'" viewBox="0 0 24 24" fill="none" stroke="'+c+'" stroke-width="'+sw+'" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2.69l5.66 5.66a8 8 0 1 1-11.31 0z"/></svg>',
-  plus: (sz=17,c="#F3EDE2") => '<svg width="'+sz+'" height="'+sz+'" viewBox="0 0 24 24" fill="none" stroke="'+c+'" stroke-width="1.8" stroke-linecap="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>',
-  x: (sz=18,c="#8A8178") => '<svg width="'+sz+'" height="'+sz+'" viewBox="0 0 24 24" fill="none" stroke="'+c+'" stroke-width="1.8" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>',
+  droplet: (sz=24,c="#C9A85C",sw=1.2) => '<svg width="'+sz+'" height="'+sz+'" viewBox="0 0 24 24" fill="none" stroke="'+c+'" stroke-width="'+sw+'" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2.69l5.66 5.66a8 8 0 1 1-11.31 0z"/></svg>',
+  plus: (sz=17,c="#1A1424") => '<svg width="'+sz+'" height="'+sz+'" viewBox="0 0 24 24" fill="none" stroke="'+c+'" stroke-width="1.8" stroke-linecap="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>',
+  x: (sz=18,c="#8B97AD") => '<svg width="'+sz+'" height="'+sz+'" viewBox="0 0 24 24" fill="none" stroke="'+c+'" stroke-width="1.8" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>',
   trash: (sz=13,c="#9C5C5C") => '<svg width="'+sz+'" height="'+sz+'" viewBox="0 0 24 24" fill="none" stroke="'+c+'" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>',
-  pencil: (sz=13,c="#8A8178") => '<svg width="'+sz+'" height="'+sz+'" viewBox="0 0 24 24" fill="none" stroke="'+c+'" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4z"/></svg>',
-  sparkles: (sz=11,c="#C08A3E") => '<svg width="'+sz+'" height="'+sz+'" viewBox="0 0 24 24" fill="none" stroke="'+c+'" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l1.9 5.8L19.5 11l-5.6 2.2L12 19l-1.9-5.8L4.5 11l5.6-2.2z"/></svg>',
-  spinner: (sz=16,c="#8A8178") => '<svg class="spin" width="'+sz+'" height="'+sz+'" viewBox="0 0 24 24" fill="none" stroke="'+c+'" stroke-width="1.8" stroke-linecap="round"><line x1="12" y1="2" x2="12" y2="6"/><line x1="12" y1="18" x2="12" y2="22"/><line x1="4.9" y1="4.9" x2="7.8" y2="7.8"/><line x1="16.2" y1="16.2" x2="19.1" y2="19.1"/><line x1="2" y1="12" x2="6" y2="12"/><line x1="18" y1="12" x2="22" y2="12"/><line x1="4.9" y1="19.1" x2="7.8" y2="16.2"/><line x1="16.2" y1="7.8" x2="19.1" y2="4.9"/></svg>',
+  pencil: (sz=13,c="#97A3BB") => '<svg width="'+sz+'" height="'+sz+'" viewBox="0 0 24 24" fill="none" stroke="'+c+'" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4z"/></svg>',
+  sparkles: (sz=11,c="#C9A85C") => '<svg width="'+sz+'" height="'+sz+'" viewBox="0 0 24 24" fill="none" stroke="'+c+'" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l1.9 5.8L19.5 11l-5.6 2.2L12 19l-1.9-5.8L4.5 11l5.6-2.2z"/></svg>',
+  spinner: (sz=16,c="#8B97AD") => '<svg class="spin" width="'+sz+'" height="'+sz+'" viewBox="0 0 24 24" fill="none" stroke="'+c+'" stroke-width="1.8" stroke-linecap="round"><line x1="12" y1="2" x2="12" y2="6"/><line x1="12" y1="18" x2="12" y2="22"/><line x1="4.9" y1="4.9" x2="7.8" y2="7.8"/><line x1="16.2" y1="16.2" x2="19.1" y2="19.1"/><line x1="2" y1="12" x2="6" y2="12"/><line x1="18" y1="12" x2="22" y2="12"/><line x1="4.9" y1="19.1" x2="7.8" y2="16.2"/><line x1="16.2" y1="7.8" x2="19.1" y2="4.9"/></svg>',
 };
 
 // ── 狀態 ──────────────────────────────────────────────
@@ -220,60 +268,60 @@ const ST = {
   collection: [], loading: true,
   showForm: false, editingId: null, formError: null,
   form: emptyForm(),
-  tierKey: null, recommendation: null, recList: [],
-  autoWx: null, wxState: "idle",
+  filters: { season: [], family: [], mood: [], occasion: [] },
+  wantText: "", avoidText: "",
+  filterResult: null,
+  collectionCollapsed: true,
 };
 function emptyForm() { return { name:"", nameZh:"", brand:"", year:"", top:"", middle:"", base:"", description:"", longevity:"2" }; }
 
 // ── 邏輯 ──────────────────────────────────────────────
-function tierForTemp(t) {
-  return TEMP_TIERS.find((x) => t > x.min && t <= x.max) || TEMP_TIERS.find((x) => t <= x.max) || TEMP_TIERS[TEMP_TIERS.length-1];
+// 取一款香水的全部香調字串
+function allNotesOf(p) {
+  return [].concat(p.notes && p.notes.top || [], p.notes && p.notes.middle || [], p.notes && p.notes.base || []).join(" ");
 }
-
-function recommend(key, wx) {
-  ST.tierKey = key; ST.recommendation = null; ST.recList = [];
-  if (ST.collection.length) {
-    const pref = WEATHER_PREFS[key];
-    const scored = ST.collection.map((p) => {
-      const all = [].concat(p.notes && p.notes.top || [], p.notes && p.notes.middle || [], p.notes && p.notes.base || []).join(" ");
-      let noteScore = 0; const matched = [];
-      pref.like.forEach((kw) => { if (all.indexOf(kw) >= 0) { noteScore++; matched.push(kw); } });
-      const lon = p.longevity || 0;
-      const longScore = lon ? Math.max(0, 2 - Math.abs(lon - pref.prefLong)) : 0;
-      return { perfume: p, score: noteScore + longScore, noteScore, matched, lon };
-    });
-    // 只列有命中香調的，依適合度（總分）由高到低；同分時持香度貼合者在前
-    ST.recList = scored
-      .filter((s) => s.noteScore > 0)
-      .sort((a, b) => b.score - a.score);
-  }
+function toggleFilter(facet, key) {
+  const arr = ST.filters[facet];
+  const i = arr.indexOf(key);
+  if (i >= 0) arr.splice(i, 1); else arr.push(key);
+  ST.filterResult = null;
   render();
 }
+function resetFilters() {
+  ST.filters = { season: [], family: [], mood: [], occasion: [] };
+  ST.wantText = ""; ST.avoidText = ""; ST.filterResult = null;
+  render();
+}
+function runFilter() {
+  const w = document.getElementById("want-text"); if (w) ST.wantText = w.value;
+  const a = document.getElementById("avoid-text"); if (a) ST.avoidText = a.value;
+  const wantList = parseNotes(ST.wantText);
+  const avoidList = parseNotes(ST.avoidText);
 
-function fetchWeather() {
-  if (!navigator.geolocation) { ST.wxState = "error"; render(); return; }
-  ST.wxState = "loading"; render();
-  navigator.geolocation.getCurrentPosition(
-    async (pos) => {
-      const { latitude, longitude } = pos.coords;
-      try {
-        const r = await fetch("https://api.open-meteo.com/v1/forecast?latitude=" + latitude + "&longitude=" + longitude + "&current=temperature_2m&timezone=auto");
-        const d = await r.json();
-        const temp = Math.round(d.current.temperature_2m);
-        let place = "你所在的位置";
-        try {
-          const g = await fetch("https://api.bigdatacloud.net/data/reverse-geocode-client?latitude=" + latitude + "&longitude=" + longitude + "&localityLanguage=zh");
-          const j = await g.json();
-          place = j.city || j.locality || j.principalSubdivision || place;
-        } catch (e) {}
-        ST.autoWx = { temp: temp, place: place };
-        ST.wxState = "done";
-        recommend(tierForTemp(temp).key, ST.autoWx);
-      } catch (e) { ST.wxState = "error"; render(); }
-    },
-    () => { ST.wxState = "error"; render(); },
-    { enableHighAccuracy: false, timeout: 10000 }
-  );
+  const activeFacets = [];
+  ["season","family","mood","occasion"].forEach((f) => ST.filters[f].forEach((k) => activeFacets.push({ facet: f, key: k })));
+
+  const scored = ST.collection.map((p) => {
+    const all = allNotesOf(p);
+    let score = 0; const reasons = []; let excluded = false;
+    for (const av of avoidList) { if (av && all.indexOf(av) >= 0) { excluded = true; break; } }
+    activeFacets.forEach(({ facet, key }) => {
+      const opt = FACETS[facet].options.find((o) => o.key === key);
+      if (!opt) return;
+      const hit = opt.kw.filter((kw) => all.indexOf(kw) >= 0);
+      if (hit.length) { score += hit.length; reasons.push(opt.label); }
+    });
+    wantList.forEach((wk) => { if (wk && all.indexOf(wk) >= 0) { score += 2; reasons.push(wk); } });
+    return { perfume: p, score, reasons: [...new Set(reasons)], excluded };
+  });
+
+  const hasAnyCondition = activeFacets.length > 0 || wantList.length > 0;
+  let list = scored.filter((s) => !s.excluded);
+  if (hasAnyCondition) list = list.filter((s) => s.score > 0);
+  list.sort((a, b) => b.score - a.score);
+  list = list.slice(0, 6);
+  ST.filterResult = { list, hasAnyCondition, avoidActive: avoidList.length > 0 };
+  render();
 }
 
 function openAddForm() { ST.form = emptyForm(); ST.editingId = null; ST.formError = null; ST.showForm = true; render(); }
@@ -329,7 +377,7 @@ async function removeItem(id) {
   try {
     await store.del(id);
     ST.collection = ST.collection.filter((x) => x.id !== id);
-    ST.recList = ST.recList.filter((r) => r.perfume.id !== id);
+    ST.filterResult = null;
     render();
   } catch (e) {}
 }
@@ -348,39 +396,6 @@ function pyramidHTML(notes, compact) {
 }
 
 function render() {
-  const activeTier = ST.tierKey ? TEMP_TIERS.find((t) => t.key === ST.tierKey) : null;
-
-  let wxSubText;
-  if (ST.wxState === "done" && ST.autoWx) wxSubText = "已抓到 " + esc(ST.autoWx.place) + " 目前 " + ST.autoWx.temp + "°C，下方已自動選好級距並列出最適合的香水，也可手動改。";
-  else if (ST.wxState === "loading") wxSubText = "正在抓你所在地的天氣…";
-  else wxSubText = "選擇今天的溫度級距，列出收藏中最適合的香水。想偷懶的話也能用定位自動偵測。";
-
-  const loadingRow = ST.wxState === "loading" ? '<div class="hint">' + IC.spinner(14) + ' 定位並查詢中…</div>' : "";
-  const errRow = ST.wxState === "error" ? '<div class="wx-err">抓不到自動天氣（可能未授權定位，或瀏覽器擋了定位）。手動選下面的級距即可。<button class="retry" id="retry-wx">再試一次</button></div>' : "";
-  // 只有在還沒抓過、且非載入中時，顯示「自動偵測」按鈕
-  const autoRow = (ST.wxState === "idle") ? '<button class="loc-btn" id="auto-wx">📍 用我的位置自動偵測溫度</button>' : "";
-
-  const chips = TEMP_TIERS.map((w) =>
-    '<button class="chip' + (ST.tierKey === w.key ? ' active' : '') + '" data-tier="' + w.key + '"><span class="emoji">' + w.emoji + '</span><span class="c-label">' + w.label + '</span><span class="c-sub">' + w.hint + '</span></button>'
-  ).join("");
-
-  let recHTML = "";
-  if (ST.tierKey && !ST.collection.length) {
-    recHTML = '<div class="hint">先在下方新增幾款香水，才能推薦。</div>';
-  } else if (ST.tierKey && ST.recList.length === 0) {
-    recHTML = '<div class="hint">收藏裡目前沒有特別適合' + (activeTier ? activeTier.label : '這個溫度') + '的香水。換個級距，或之後多加幾款試試。</div>';
-  } else if (ST.recList.length) {
-    const head = '<div class="rec-head"><span class="rec-tag">' + IC.sparkles() + ' ' + (activeTier ? activeTier.label + '（' + activeTier.hint + '）' : '') + ' 最適合的香水</span><span class="rec-count">' + ST.recList.length + ' 款</span></div>';
-    const rows = ST.recList.map((r, i) => {
-      const p = r.perfume;
-      const badge = p.longevity ? '<span class="long-badge">持香 ' + LONG_LABELS[p.longevity] + '</span>' : "";
-      const hits = r.matched.length ? '<div class="rec-hits">命中香調：' + r.matched.map((m) => '<span class="hit-pill">' + esc(m) + '</span>').join("") + '</div>' : "";
-      const orig = p.name && p.name !== p.nameZh ? '<span class="rl-orig">' + esc(p.name) + '</span>' : "";
-      return '<div class="rec-row"><div class="rl-rank">' + (i + 1) + '</div><div class="rl-body"><div class="rl-title">' + esc(p.nameZh) + ' ' + orig + '</div><div class="rl-brand">' + esc(p.brand || "—") + '</div>' + hits + '</div><div class="rl-side">' + badge + '</div></div>';
-    }).join("");
-    recHTML = '<div class="rec-list">' + head + rows + '</div>';
-  }
-
   let listHTML;
   if (ST.loading) listHTML = '<div class="empty">' + IC.spinner(20) + '</div>';
   else if (!ST.collection.length) listHTML = '<div class="empty">收藏室還是空的。點上方「新增香水」開始建立。</div>';
@@ -411,21 +426,59 @@ function render() {
       errHTML + '<button class="save-btn" id="save-form">' + (ST.editingId ? '儲存修改' : '加入收藏') + '</button></div></div>';
   }
 
+  // ── 篩選面板（主功能，常駐顯示） ──
+  function facetChips(facetKey) {
+    return FACETS[facetKey].options.map((o) => {
+      const on = ST.filters[facetKey].indexOf(o.key) >= 0;
+      return '<button class="fchip' + (on ? ' on' : '') + '" data-facet="' + facetKey + '" data-fkey="' + o.key + '">' + o.label + '</button>';
+    }).join("");
+  }
+  let resultHTML = "";
+  if (ST.filterResult) {
+    const fr = ST.filterResult;
+    if (!fr.hasAnyCondition && !fr.avoidActive) {
+      resultHTML = '<div class="hint">選擇上面的條件，再按「推薦給我」。</div>';
+    } else if (fr.list.length === 0) {
+      resultHTML = '<div class="hint">收藏裡沒有符合這些條件的香水。放寬條件試試。</div>';
+    } else {
+      const rows = fr.list.map((r, i) => {
+        const p = r.perfume;
+        const badge = p.longevity ? '<span class="long-badge">持香 ' + LONG_LABELS[p.longevity] + '</span>' : "";
+        const why = r.reasons.length ? '<div class="rec-hits">符合：' + r.reasons.map((m) => '<span class="hit-pill">' + esc(m) + '</span>').join("") + '</div>' : "";
+        const orig = p.name && p.name !== p.nameZh ? '<span class="rl-orig">' + esc(p.name) + '</span>' : "";
+        return '<div class="rec-row"><div class="rl-rank">' + (i + 1) + '</div><div class="rl-body"><div class="rl-title">' + esc(p.nameZh) + ' ' + orig + '</div><div class="rl-brand">' + esc(p.brand || "—") + '</div>' + why + '</div><div class="rl-side">' + badge + '</div></div>';
+      }).join("");
+      resultHTML = '<div class="rec-list"><div class="rec-head"><span class="rec-tag">' + IC.sparkles() + ' 為你推薦</span><span class="rec-count">' + fr.list.length + ' 款</span></div>' + rows + '</div>';
+    }
+  }
+  const filterBody =
+    '<div class="filter-sect"><div class="f-sect-title">' + FACETS.season.title + '</div><div class="fchip-row">' + facetChips("season") + '</div></div>' +
+    '<div class="filter-sect"><div class="f-sect-title">' + FACETS.family.title + '</div><div class="fchip-row">' + facetChips("family") + '</div></div>' +
+    '<div class="filter-sect"><div class="f-sect-title">' + FACETS.mood.title + '</div><div class="fchip-row">' + facetChips("mood") + '</div></div>' +
+    '<div class="filter-sect"><div class="f-sect-title">' + FACETS.occasion.title + '</div><div class="fchip-row">' + facetChips("occasion") + '</div></div>' +
+    '<div class="filter-sect"><div class="f-sect-title">想要的氣味（可選，用、分隔）</div><input class="input" id="want-text" value="' + esc(ST.wantText) + '" placeholder="例如：玫瑰、檀香"></div>' +
+    '<div class="filter-sect"><div class="f-sect-title">想避開的氣味（可選）</div><input class="input" id="avoid-text" value="' + esc(ST.avoidText) + '" placeholder="例如：廣藿香、菸草"></div>' +
+    '<div class="filter-btns"><button class="save-btn" id="run-filter" style="flex:1">推薦給我</button><button class="reset-btn" id="reset-filter">清除</button></div>' +
+    resultHTML;
+  const filterPanel =
+    '<div class="narrow panel"><div class="w-title">今天該擦哪一瓶？</div><div class="w-sub">選擇季節、香調、心情、場合等條件，按「推薦給我」，從收藏中挑出最適合的 6 款。（心情與場合由香調自動判斷，僅供參考）</div>' + filterBody + '</div>';
+
   document.getElementById("app").innerHTML =
-    '<header class="narrow" style="margin-bottom:24px"><div style="display:flex;align-items:center;gap:7px;margin-bottom:6px">' + IC.droplet(18,"#C08A3E",1.5) + '<span class="kicker">香水收藏室</span></div><h1 class="title">The Perfume Cabinet</h1><p class="subtitle">手動記錄你的香水，依今天的天氣從收藏中挑一款來擦。</p></header>' +
+    '<header class="narrow" style="margin-bottom:24px"><div style="display:flex;align-items:center;gap:7px;margin-bottom:6px">' + IC.droplet(18,"#C9A85C",1.5) + '<span class="kicker">香水收藏室</span></div><h1 class="title">The Perfume Cabinet</h1><p class="subtitle">記錄你的香水，依季節、香調、心情挑出最適合的幾款。</p></header>' +
     '<div class="narrow"><button class="btn-add" id="add-btn">' + IC.plus(17) + ' 新增香水</button></div>' +
-    '<div class="narrow panel"><div class="w-title">今天該擦哪一瓶？</div><div class="w-sub">' + wxSubText + '</div>' + autoRow + loadingRow + errRow + '<div class="w-grid">' + chips + '</div>' + recHTML + '</div>' +
-    '<div class="wide col-head"><span class="col-title">我的收藏</span><span class="count">' + ST.collection.length + '</span></div>' +
-    '<div class="wide">' + listHTML + '</div>' + modalHTML;
+    filterPanel +
+    '<div class="wide col-head" id="col-toggle"><span class="col-title">我的收藏</span><span class="count">' + ST.collection.length + '</span><span class="col-arrow">' + (ST.collectionCollapsed ? '展開 ▼' : '收起 ▲') + '</span></div>' +
+    (ST.collectionCollapsed ? '' : '<div class="wide">' + listHTML + '</div>') + modalHTML;
 
   bind();
 }
 
 function bind() {
   const add = document.getElementById("add-btn"); if (add) add.onclick = openAddForm;
-  const retry = document.getElementById("retry-wx"); if (retry) retry.onclick = fetchWeather;
-  const autoBtn = document.getElementById("auto-wx"); if (autoBtn) autoBtn.onclick = fetchWeather;
-  document.querySelectorAll("[data-tier]").forEach((b) => b.onclick = () => recommend(b.getAttribute("data-tier"), ST.autoWx));
+  const ct = document.getElementById("col-toggle"); if (ct) ct.onclick = () => { ST.collectionCollapsed = !ST.collectionCollapsed; render(); };
+  document.querySelectorAll("[data-facet]").forEach((b) => b.onclick = () => toggleFilter(b.getAttribute("data-facet"), b.getAttribute("data-fkey")));
+  const rf = document.getElementById("run-filter"); if (rf) rf.onclick = runFilter;
+  const rsf = document.getElementById("reset-filter"); if (rsf) rsf.onclick = resetFilters;
   document.querySelectorAll("[data-edit]").forEach((b) => b.onclick = () => { const it = ST.collection.find((c)=>c.id===b.getAttribute("data-edit")); if (it) openEditForm(it); });
   document.querySelectorAll("[data-del]").forEach((b) => b.onclick = () => removeItem(b.getAttribute("data-del")));
   const lib = document.getElementById("lib-select"); if (lib) lib.onchange = () => fillFromLibrary(lib.value);
