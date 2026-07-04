@@ -97,17 +97,17 @@
   .count { font-size: 12px; color: #BDB6AC; background: rgba(255,250,240,0.09); border-radius: 999px; padding: 2px 9px; }
   .empty { text-align: center; color: #8D867D; font-size: 14px; padding: 40px 0; }
 
-  .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 18px; }
-  .card { position: relative; background: rgba(255,253,248,0.04); border: 1px solid rgba(255,250,240,0.09); border-top-color: rgba(224,192,120,0.22); border-radius: 20px; padding: 16px; box-shadow: 0 10px 36px rgba(0,0,0,0.4); backdrop-filter: blur(14px); -webkit-backdrop-filter: blur(14px); transition: transform .18s, box-shadow .18s, border-color .18s; }
+  .grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px; }
+  .card { position: relative; background: rgba(255,253,248,0.04); border: 1px solid rgba(255,250,240,0.09); border-top-color: rgba(224,192,120,0.22); border-radius: 16px; padding: 12px; box-shadow: 0 10px 36px rgba(0,0,0,0.4); backdrop-filter: blur(14px); -webkit-backdrop-filter: blur(14px); transition: transform .18s, box-shadow .18s, border-color .18s; }
   .card:hover { transform: translateY(-2px); border-color: rgba(224,192,120,0.35); box-shadow: 0 16px 46px rgba(0,0,0,0.5); }
-  .card-actions { position: absolute; top: 12px; right: 12px; display: flex; gap: 6px; z-index: 2; }
+  .card-actions { position: absolute; top: 9px; right: 9px; display: flex; gap: 5px; z-index: 2; }
   .icon-btn { border: 1px solid rgba(255,250,240,0.1); background: rgba(20,17,19,0.85); border-radius: 8px; padding: 6px; cursor: pointer; color: #9A938A; box-shadow: 0 1px 3px rgba(0,0,0,0.3); display: inline-flex; }
   .icon-btn.danger { color: #C97D86; }
-  .card-img { width: 100%; height: 140px; border-radius: 11px; overflow: hidden; background: rgba(12,10,11,0.5); border: 1px solid rgba(255,250,240,0.1); margin-bottom: 12px; display: flex; align-items: center; justify-content: center; }
-  .c-brand { font-size: 10px; letter-spacing: 1.2px; text-transform: uppercase; color: #8D867D; }
-  .c-name { font-family: 'Cormorant Garamond', Georgia, serif; font-size: 21px; font-weight: 600; line-height: 1.1; margin-top: 2px; color: #F2ECDF; }
-  .c-orig { font-size: 12px; font-style: italic; color: #9A938A; margin-top: 1px; }
-  .c-desc { font-size: 12px; color: #ABA49A; margin: 8px 0 0; line-height: 1.5; }
+  .card-img { width: 100%; height: 72px; border-radius: 10px; overflow: hidden; background: rgba(12,10,11,0.5); border: 1px solid rgba(255,250,240,0.1); margin-bottom: 9px; display: flex; align-items: center; justify-content: center; }
+  .c-brand { font-size: 9px; letter-spacing: 1px; text-transform: uppercase; color: #8D867D; }
+  .c-name { font-family: 'Cormorant Garamond', Georgia, serif; font-size: 17px; font-weight: 600; line-height: 1.1; margin-top: 2px; color: #F2ECDF; }
+  .c-orig { font-size: 10.5px; font-style: italic; color: #9A938A; margin-top: 1px; }
+  .c-desc { font-size: 11px; color: #ABA49A; margin: 6px 0 0; line-height: 1.45; }
 
   .pyramid { margin-top: 10px; display: flex; flex-direction: column; gap: 7px; }
   .tier-row { display: flex; gap: 10px; align-items: flex-start; }
@@ -132,7 +132,11 @@
   .save-btn { margin-top: 14px; width: 100%; border: 1px solid rgba(224,192,120,0.7); background: linear-gradient(180deg, #E2C77E 0%, #C79E4F 55%, #B58C3E 100%); color: #221A0C; font-size: 14px; font-weight: 600; letter-spacing: 0.3px; padding: 12px; border-radius: 11px; cursor: pointer; box-shadow: 0 6px 22px rgba(201,168,92,0.2), inset 0 1px 0 rgba(255,244,214,0.55); transition: transform .18s, box-shadow .18s; }
   .save-btn:hover { transform: translateY(-1px); box-shadow: 0 10px 28px rgba(201,168,92,0.28), inset 0 1px 0 rgba(255,244,214,0.55); }
 
-  @media (max-width: 600px) { .grid { grid-template-columns: 1fr; } }
+  @media (max-width: 900px) { .grid { grid-template-columns: repeat(2, 1fr); } }
+  @media (max-width: 540px) { .grid { grid-template-columns: 1fr; } }
+  .card .pill { font-size: 10px; padding: 1px 7px; }
+  .card .tier-label { font-size: 13px; }
+  .card .pyramid { gap: 5px; margin-top: 8px; }
 
   .tab-nav { display: flex; gap: 8px; margin-top: 18px; }
   .tab-btn { flex: 1; border: 1px solid rgba(255,250,240,0.09); background: rgba(255,253,248,0.04); color: #9A938A; font-size: 14px; font-weight: 600; letter-spacing: 0.3px; padding: 13px; border-radius: 12px; cursor: pointer; transition: all .18s; }
@@ -170,6 +174,7 @@
   .fchip.on { border-color: rgba(201,168,92,0.7); background: linear-gradient(180deg, rgba(201,168,92,0.2), rgba(201,168,92,0.1)); color: #E0C078; font-weight: 600; box-shadow: inset 0 1px 0 rgba(255,244,214,0.12); }
 
   .brand-group { margin-bottom: 30px; }
+  .col-brand-bar { display: flex; flex-wrap: wrap; gap: 7px; margin: 0 0 20px; }
   .brand-head { display: flex; align-items: center; gap: 10px; margin: 0 0 14px; }
   .brand-name { font-family: 'Cormorant Garamond', Georgia, serif; font-size: 20px; font-weight: 600; color: #E0C078; letter-spacing: 0.5px; }
   .brand-count { font-size: 11px; color: #9A938A; background: rgba(255,250,240,0.08); border-radius: 999px; padding: 1px 8px; }
@@ -413,11 +418,12 @@ const ST = {
   collection: [], loading: true,
   showForm: false, editingId: null, formError: null,
   form: emptyForm(),
-  filters: { season: [], family: [], mood: [], occasion: [], brand: [] },
+  filters: { season: [], family: [], mood: [], occasion: [] },
   searchText: "",
   wantText: "", avoidText: "",
   filterResult: null,
   collectionCollapsed: true,
+  collectionBrand: null,
   tab: "filter",          // "filter" | "tarot"
   tarot: null,            // { card, perfume, oracle, flipped }
   tarotLoading: false,
@@ -578,7 +584,7 @@ function toggleFilter(facet, key) {
   render();
 }
 function resetFilters() {
-  ST.filters = { season: [], family: [], mood: [], occasion: [], brand: [] };
+  ST.filters = { season: [], family: [], mood: [], occasion: [] };
   ST.wantText = ""; ST.avoidText = ""; ST.searchText = ""; ST.filterResult = null;
   render();
 }
@@ -589,7 +595,6 @@ function runFilter() {
   const wantList = parseNotes(ST.wantText);
   const avoidList = parseNotes(ST.avoidText);
   const search = ST.searchText.trim().toLowerCase();
-  const brands = ST.filters.brand;
 
   const activeFacets = [];
   ["season","family","mood","occasion"].forEach((f) => ST.filters[f].forEach((k) => activeFacets.push({ facet: f, key: k })));
@@ -597,10 +602,8 @@ function runFilter() {
   const scored = ST.collection.map((p) => {
     const all = allNotesOf(p);
     let score = 0; const reasons = []; let excluded = false;
-    // 品牌：選了就只留這些品牌（硬性條件）
-    if (brands.length && brands.indexOf(p.brand || "未分類") < 0) excluded = true;
     // 搜尋：中英文名、品牌、香調、描述任一命中（硬性條件）
-    if (!excluded && search) {
+    if (search) {
       const hay = ((p.nameZh||"") + " " + (p.name||"") + " " + (p.brand||"") + " " + all + " " + (p.description||"")).toLowerCase();
       if (hay.indexOf(search) < 0) excluded = true;
     }
@@ -617,7 +620,7 @@ function runFilter() {
   });
 
   const hasScoring = activeFacets.length > 0 || wantList.length > 0;
-  const hasAnyCondition = hasScoring || brands.length > 0 || !!search || avoidList.length > 0;
+  const hasAnyCondition = hasScoring || !!search || avoidList.length > 0;
   let list = scored.filter((s) => !s.excluded);
   if (hasScoring) list = list.filter((s) => s.score > 0);
   list.sort((a, b) => b.score - a.score);
@@ -709,6 +712,11 @@ function render() {
       (groups[b] = groups[b] || []).push(item);
     });
     const brandNames = Object.keys(groups).sort((a, b) => a.localeCompare(b, "zh-Hant"));
+    // 只看某品牌：品牌已不存在（刪光）時自動回到全部
+    if (ST.collectionBrand && !groups[ST.collectionBrand]) ST.collectionBrand = null;
+    const selector = '<div class="col-brand-bar"><button class="fchip' + (!ST.collectionBrand ? ' on' : '') + '" data-colbrand="">全部</button>' +
+      brandNames.map((b) => '<button class="fchip' + (ST.collectionBrand === b ? ' on' : '') + '" data-colbrand="' + esc(b) + '">' + esc(b) + '</button>').join("") + '</div>';
+    const shownBrands = ST.collectionBrand ? [ST.collectionBrand] : brandNames;
     const cardHTML = (item) => {
       const badge = item.longevity ? '<span class="long-badge">持香 ' + LONG_LABELS[item.longevity] + '</span>' : "";
       const desc = item.description ? '<p class="c-desc">' + esc(item.description) + '</p>' : "";
@@ -717,7 +725,7 @@ function render() {
         '<div class="c-brand">' + esc(item.brand || "—") + (item.year ? ' · ' + esc(item.year) : '') + '</div>' +
         '<div class="c-name">' + esc(item.nameZh) + '</div><div class="c-orig">' + esc(item.name) + '</div>' + desc + badge + pyramidHTML(item.notes, true) + '</div>';
     };
-    listHTML = brandNames.map((b) => {
+    listHTML = selector + shownBrands.map((b) => {
       return '<div class="brand-group"><div class="brand-head"><span class="brand-name">' + esc(b) + '</span><span class="brand-count">' + groups[b].length + '</span><span class="brand-line"></span></div>' +
         '<div class="grid">' + groups[b].map(cardHTML).join("") + '</div></div>';
     }).join("");
@@ -759,23 +767,13 @@ function render() {
         const badge = p.longevity ? '<span class="long-badge">持香 ' + LONG_LABELS[p.longevity] + '</span>' : "";
         const why = r.reasons.length ? '<div class="rec-hits">符合：' + r.reasons.map((m) => '<span class="hit-pill">' + esc(m) + '</span>').join("") + '</div>' : "";
         const orig = p.name && p.name !== p.nameZh ? '<span class="rl-orig">' + esc(p.name) + '</span>' : "";
-        return '<div class="rec-row"><div class="rl-rank">' + (i + 1) + '</div><div class="rl-body"><div class="rl-title">' + esc(p.nameZh) + ' ' + orig + '</div><div class="rl-brand">' + esc(p.brand || "—") + '</div>' + why + '</div><div class="rl-side">' + badge + '</div></div>';
+        return '<div class="rec-row"><div class="rl-rank">' + (i + 1) + '</div><div class="rl-body"><div class="rl-title">' + esc(p.nameZh) + ' ' + orig + '</div><div class="rl-brand">' + esc(p.brand || "—") + '</div>' + why + pyramidHTML(p.notes, true) + '</div><div class="rl-side">' + badge + '</div></div>';
       }).join("");
       resultHTML = '<div class="rec-list"><div class="rec-head"><span class="rec-tag">' + IC.sparkles() + ' 為你推薦</span><span class="rec-count">' + fr.list.length + ' 款</span></div>' + rows + '</div>';
     }
   }
-  // 品牌膠囊：由收藏動態生成（中文品牌前、英文字母序，與收藏分組一致）
-  const brandSet = {};
-  ST.collection.forEach((p) => { brandSet[p.brand || "未分類"] = true; });
-  const brandList = Object.keys(brandSet).sort((a, b) => a.localeCompare(b, "zh-Hant"));
-  const brandChips = brandList.map((b) => {
-    const on = ST.filters.brand.indexOf(b) >= 0;
-    return '<button class="fchip' + (on ? ' on' : '') + '" data-facet="brand" data-fkey="' + esc(b) + '">' + esc(b) + '</button>';
-  }).join("");
-
   const filterBody =
     '<div class="filter-sect"><input class="input" id="search-text" value="' + esc(ST.searchText) + '" placeholder="🔍 搜尋名稱、品牌、香調…"></div>' +
-    '<div class="filter-sect"><div class="f-sect-title">品牌</div><div class="fchip-row">' + brandChips + '</div></div>' +
     '<div class="filter-sect"><div class="f-sect-title">' + FACETS.season.title + '</div><div class="fchip-row">' + facetChips("season") + '</div></div>' +
     '<div class="filter-sect"><div class="f-sect-title">' + FACETS.family.title + '</div><div class="fchip-row">' + facetChips("family") + '</div></div>' +
     '<div class="filter-sect"><div class="f-sect-title">' + FACETS.mood.title + '</div><div class="fchip-row">' + facetChips("mood") + '</div></div>' +
@@ -856,6 +854,7 @@ function bind() {
   const flip = document.getElementById("flip-card"); if (flip) flip.onclick = flipTarot;
   const redraw = document.getElementById("redraw"); if (redraw) redraw.onclick = () => drawTarot(true);
   const ct = document.getElementById("col-toggle"); if (ct) ct.onclick = () => { ST.collectionCollapsed = !ST.collectionCollapsed; render(); };
+  document.querySelectorAll("[data-colbrand]").forEach((b) => b.onclick = () => { syncFilterInputs(); ST.collectionBrand = b.getAttribute("data-colbrand") || null; render(); });
   document.querySelectorAll("[data-facet]").forEach((b) => b.onclick = () => toggleFilter(b.getAttribute("data-facet"), b.getAttribute("data-fkey")));
   const rf = document.getElementById("run-filter"); if (rf) rf.onclick = runFilter;
   const st = document.getElementById("search-text"); if (st) st.onkeydown = (e) => { if (e.key === "Enter") runFilter(); };
