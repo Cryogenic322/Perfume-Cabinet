@@ -368,8 +368,8 @@ const LIBRARY = [
   { nameZh:"純粹繆思", name:"Pure Musc For Her", brand:"Narciso Rodriguez", year:"2019", top:["麝香"], middle:["茉莉","依蘭","橙花"], base:["喀什米蘭木"], description:"乾淨明亮的白麝香裹著柔軟白花，像冷陽下剛洗好的棉布。", longevity:2, verified:true },
   { nameZh:"檀道", name:"Tam Dao", brand:"Diptyque", year:"2003", top:["義大利絲柏","香桃木","玫瑰"], middle:["檀香","雪松"], base:["巴西玫瑰木","香料","琥珀","白麝香"], description:"亞洲森林的奶質檀香，乾燥木質帶靜謐禪意。", longevity:2, verified:true },
   { nameZh:"希臘無花果", name:"Philosykos", brand:"Diptyque", year:"1996", top:["無花果葉","無花果"], middle:["綠葉","椰子"], base:["無花果樹","木質","雪松"], description:"逼真的無花果全貌，葉、果、樹幹的青綠奶香，地中海夏日。", longevity:1, verified:true },
-  { nameZh:"冥府之路", name:"Tenebrae 26", brand:"L'Artisan Parfumeur", year:"2016", top:["冷杉","柑橘"], middle:["乳香","綠色木質"], base:["木質","泥土調"], description:"霧氣中的夜森林，乾燥乳香混著松針與濕潤土壤。", longevity:2, verified:true },
-  { nameZh:"冥府之路馥鬱", name:"Passage d'Enfer Extrême", brand:"L'Artisan Parfumeur", year:"2020", top:["紅蜘蛛百合","粉紅胡椒"], middle:["乳香","茉莉"], base:["檀香","雪松","香草","麝香"], description:"冥府之路的濃香版，紅百合在煙燻乳香中若隱若現，尾調奶質檀香與香草的暖意。", longevity:2, verified:true },
+  { nameZh:"冥府之路", name:"Passage d'Enfer", brand:"L'Artisan Parfumeur", year:"1999", top:["玫瑰","薑"], middle:["乳香","蘆薈木","野百合","大西洋杉木"], base:["檀香","安息香","麝香"], description:"白色焚香與野百合的冥府之路，冷冽乳香繞著杉木，木質東方調的極簡聖殿。", longevity:2, verified:true },
+  { nameZh:"冥府之路彼岸花", name:"Passage d'Enfer Extrême", brand:"L'Artisan Parfumeur", year:"2020", top:["玫瑰","薑"], middle:["乳香","蘆薈木","白百合","雪松"], base:["檀香","安息香","白麝香"], description:"冥府之路的馥郁進階版。乳香與白百合的寺廟感更深，檀香安息香收出奶感木質，點燈後的神聖殿堂。", longevity:3, verified:true },
   { nameZh:"像你這樣的人", name:"You or Someone Like You", brand:"État Libre d'Orange", year:"2017", top:["薄荷","葡萄柚","佛手柑","茴香"], middle:["綠調","黑醋栗","玫瑰","Hedione"], base:["白麝香"], description:"史上最強 Mojito 香水，搗碎薄荷與柑橘的沁涼氣泡感，後段透出柔和玫瑰，盛夏與雨天皆宜。", longevity:2, verified:true },
   { nameZh:"肌膚之華", name:"Fleur de Peau", brand:"Diptyque", year:"2018", top:["醛","粉紅胡椒","白芷","佛手柑"], middle:["鳶尾","土耳其玫瑰"], base:["麝香","麝香葵","胡蘿蔔","龍涎香","檀香","皮革","琥珀木"], description:"源自厄洛斯與賽姬神話的肌膚之香，粉質鳶尾裹著柔軟白麝香，乾淨又帶一絲性感體溫感。", longevity:3, verified:true },
   { nameZh:"阿提密西亞", name:"Artemisia", brand:"Penhaligon's", year:"2002", top:["油桃","綠調"], middle:["紫羅蘭","香草","茶","鈴蘭","茉莉","青蘋果"], base:["麝香","檀香","橡木苔","琥珀"], description:"粉質的綠色花香，紫羅蘭與鈴蘭的空靈感，柔和安靜的貼膚膚香。", longevity:1, verified:true },
@@ -903,7 +903,7 @@ async function seedIfFirstRun(rawItems) {
   try { raw = await store.all(); } catch (e) { raw = []; }
   ST.collection = raw.filter((x) => !x._marker).sort((a,b)=>b.savedAt-a.savedAt);
   // 一次性遷移 v2：自動灌入的項目（seed_ 開頭）依英文名或中文名比對香水庫，全欄位同步最新查證資料
-  if (!raw.some((x) => x.id === "libsync_v2")) {
+  if (!raw.some((x) => x.id === "libsync_v4")) {
     for (const item of ST.collection) {
       if (String(item.id).indexOf("seed_") !== 0) continue;
       const lib = LIBRARY.find((p) => (p.name && p.name === item.name) || (p.nameZh && p.nameZh === item.nameZh));
@@ -918,7 +918,7 @@ async function seedIfFirstRun(rawItems) {
         try { await store.put(item); } catch (e) {}
       }
     }
-    try { await store.put({ id: "libsync_v2", savedAt: 0, _marker: true }); } catch (e) {}
+    try { await store.put({ id: "libsync_v4", savedAt: 0, _marker: true }); } catch (e) {}
   }
   const savedTarot = raw.find((x) => x.id === "tarot_today");
   if (savedTarot && savedTarot.value) ST.tarotSaved = savedTarot.value;
