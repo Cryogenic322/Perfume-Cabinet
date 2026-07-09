@@ -171,6 +171,22 @@
 
   @media (max-width: 900px) { .grid { grid-template-columns: repeat(2, 1fr); } }
   @media (max-width: 540px) { .grid { gap: 10px; } .card { padding: 10px; } .c-name { font-size: 15px; } .card-img { height: 60px; } }
+
+  /* 手機效能優化：即時毛玻璃在手機 GPU 上太重，改用純半透明底（視覺近似，大幅省效能） */
+  @media (hover: none), (max-width: 900px) {
+    .card, .panel, .fchip, .tab-btn, .input, .theme-toggle, .modal, .tarot-card.back, .icon-btn {
+      backdrop-filter: none !important;
+      -webkit-backdrop-filter: none !important;
+    }
+    /* 卡片與面板略為加不透明，補回失去模糊後的可讀性 */
+    body:not(.dark) .card, body:not(.dark) .panel { background: rgba(250,247,240,0.92); }
+    body.dark .card, body.dark .panel { background: rgba(26,23,25,0.9); }
+    body:not(.dark) .fchip, body:not(.dark) .tab-btn, body:not(.dark) .input { background: rgba(250,247,240,0.8); }
+    body.dark .fchip, body.dark .tab-btn, body.dark .input { background: rgba(30,26,29,0.78); }
+    /* 動畫用 GPU 合成，避免手機掉格 */
+    .tarot-card.back, .tarot-result .tarot-card.front { will-change: transform; transform: translateZ(0); }
+    .card { will-change: auto; }
+  }
   .card .pill { font-size: 10px; padding: 1px 7px; }
   .card .tier-label { font-size: 13px; }
   .card .pyramid { gap: 5px; margin-top: 8px; }
