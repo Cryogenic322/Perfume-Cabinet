@@ -112,7 +112,6 @@
   .rec-name { font-family: 'Cormorant Garamond', 'Noto Serif TC', Georgia, serif; font-size: 23px; font-weight: 600; line-height: 1.1; margin-top: 3px; color: var(--text-strong); }
   .rec-orig { font-size: 12px; font-style: italic; color: var(--muted); margin-top: 1px; }
   .rec-reason { font-size: 13px; color: var(--text-chip); line-height: 1.6; margin: 8px 0 0; }
-  .long-badge { display: inline-block; margin-top: 8px; font-size: 11px; font-weight: 600; color: var(--sage); background: rgba(159,181,140,0.12); border: 1px solid rgba(159,181,140,0.28); border-radius: 999px; padding: 2px 10px; }
 
   .rec-list { margin-top: 18px; padding-top: 16px; border-top: 1px solid var(--border-2); }
   .rec-head { display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px; }
@@ -127,7 +126,6 @@
   .rec-hits { margin-top: 6px; font-size: 11px; color: var(--muted); display: flex; flex-wrap: wrap; gap: 4px; align-items: center; }
   .hit-pill { font-size: 11px; padding: 1px 8px; border-radius: 999px; background: rgba(201,168,92,0.12); border: 1px solid rgba(201,168,92,0.3); color: var(--gold-text-2); }
   .rl-side { flex-shrink: 0; }
-  .rl-side .long-badge { margin-top: 0; }
 
   .col-head { margin: 44px auto 16px; display: flex; align-items: baseline; gap: 10px; padding-top: 24px; border-top: 1px solid var(--border-2); cursor: pointer; }
   .col-arrow { margin-left: auto; font-size: 12px; font-weight: 600; color: var(--gold-text-2); align-self: center; }
@@ -325,7 +323,6 @@ const NOTE_TIERS = [
   { key: "base", label: "後調", sub: "Base", color: "#7A9A64" },
 ];
 
-const LONG_LABELS = { 1: "清淡", 2: "適中", 3: "持久" };
 
 // ── 塔羅占卜資料 ──────────────────────────────────────
 // 牌的元素 → 偏好香調 + 神諭口吻
@@ -461,6 +458,23 @@ const LIBRARY = [
   { nameZh:"雪盲症", name:"Snow Blindness", brand:"Le Hemora", year:"", top:["冰片","樟腦","海鹽皮"], middle:["清酒","蘭花"], base:["麝香","丁香"], description:"雪地中的眩白與失焦，冰片樟腦的冷冽刺鼻，沉入清酒與麝香的迷濛。", longevity:2, verified:true },
   { nameZh:"妄聽症", name:"Paracusia", brand:"Le Hemora", year:"", top:["綠毒汁","無花果"], middle:["焦糖","曼陀羅花","苦杏仁"], base:["樺木焦油","黑麝","菸草"], description:"幻聽般的暗黑苦杏仁，曼陀羅花的致幻甜，墜入樺木焦油與菸草的深淵。", longevity:3, verified:true },
   { nameZh:"失語症", name:"Aphasia", brand:"Le Hemora", year:"", top:["瑪黛茶"], middle:["當歸","皮革","五月玫瑰"], base:["焦油","廣藿香","乾木"], description:"言語失落後的沉默，瑪黛茶的苦澀草本，皮革與焦油裹著乾涸的玫瑰。", longevity:3, verified:true },
+  { nameZh:"艾底希思", name:"Eidesis", brand:"Aesop", year:"2022", top:["苦橙葉","黑胡椒","乳香"], middle:["小茴香","雪松","乳香"], base:["檀香","雪松","岩蘭草"], description:"虛實之境二部曲，納西瑟斯的倒影。透明感木質，乳香辛香繞著奶檀，清冷與乾暖的平衡。", longevity:2, verified:true },
+  { nameZh:"木蘭詩語", name:"Magnolia Alba", brand:"Chloé", year:"2019", top:["青草","葡萄柚"], middle:["玉蘭"], base:["木蘭","麝香"], description:"仙境花園系列。晨露白玉蘭，微酸柑橘與綠意，清雅線性的仙女花香。", longevity:1, verified:true },
+  { nameZh:"布列塔尼的空氣", name:"Un Air de Bretagne", brand:"L'Artisan Parfumeur", year:"2019", top:["佛手柑","柑橘"], middle:["西瓜酮","橙花"], base:["海藻","絲柏","龍涎香","雪松"], description:"布列塔尼海岸的鹽霧，西瓜水感與海藻絲柏，狂浪化為低語的清淡海洋。", longevity:1, verified:true },
+  { nameZh:"熄燈禮拜", name:"Tenebrae 26", brand:"L'Artisan Parfumeur", year:"", top:["冷杉","柑橘"], middle:["乳香","綠色木質"], base:["木質","泥土調"], description:"秘境植物園系列，歷經26次嘗試。夜之森林的幽深核心，焚香樹脂與林木煙霧交織。", longevity:2, verified:true },
+  { nameZh:"梵音藏心", name:"Dzongkha", brand:"L'Artisan Parfumeur", year:"2006", top:["牡丹","小豆蔻","荔枝"], middle:["辛香料","茶葉","香根草","焚香","雪松"], base:["皮革","鳶尾","紙莎草"], description:"不丹寺廟的裊裊藏香，苦而沉穩的鳶尾皮革，禁欲系的心靈之旅。", longevity:2, verified:true },
+  { nameZh:"狂戀苦艾", name:"Fou d'Absinthe", brand:"L'Artisan Parfumeur", year:"2006", top:["黑醋栗","當歸","苦艾"], middle:["薑","廣藿香","胡椒","肉豆蔻","八角","丁香"], base:["冷杉","焚香","松樹"], description:"苦艾酒的致幻綠，松針辛香層層堆疊，草本的苦與神祕令人微醺。", longevity:2, verified:true },
+  { nameZh:"玫瑰追憶", name:"Mémoire de Roses", brand:"L'Artisan Parfumeur", year:"2022", top:["橘子","香檸檬"], middle:["玫瑰"], base:["麝香"], description:"柑橘開場的冷靜玫瑰，霧感麝香收尾，乾淨精緻有距離感的低溫玫瑰。", longevity:2, verified:true },
+  { nameZh:"一生之水（男）", name:"L'Eau d'Issey Pour Homme", brand:"Issey Miyake", year:"1994", top:["柚子","佛手柑","檸檬","芫荽"], middle:["肉豆蔻","番紅花","藍睡蓮","天竺葵"], base:["檀香","香根草","菸草","雪松","麝香"], description:"90年代水感男香經典，柚子的清冽如瀑布傾瀉，落在溫暖木質與菸草上。", longevity:2, verified:true },
+  { nameZh:"一生之鹽", name:"Le Sel d'Issey", brand:"Issey Miyake", year:"2024", top:["海藻","橡木苔"], middle:["生薑","鹽"], base:["香根草","雪松"], description:"以無味的鹽為靈魂，海藻橡木苔的濕鹹，生薑昇華成海風，落回大地木質。", longevity:2, verified:true },
+  { nameZh:"金木犀19", name:"Osmanthus 19", brand:"Le Labo", year:"2025", top:["薰衣草"], middle:["桂花","焚香"], base:["雪松","廣藿香","樹脂"], description:"京都城市限定。線香與薰衣草開場，金木犀的幽微桂花，古都的木質禪意。", longevity:2, verified:true },
+  { nameZh:"樹果19", name:"Baie 19", brand:"Le Labo", year:"2019", top:["杜松子"], middle:["綠葉","雨水氣息"], base:["廣藿香","雪松","麝香"], description:"雨落在滾燙石頭上的氣味，杜松子與濕綠，雨水般透明的木質。", longevity:2, verified:true },
+  { nameZh:"赤霞橘光", name:"Orange Sanguine", brand:"Atelier Cologne", year:"2010", top:["血橙","苦橙","甜橙"], middle:["波旁天竺葵"], base:["檀香","雪松"], description:"剛剖開的血橙迸出霞光，天竺葵的青綠，奶油檀香收出療癒尾韻。", longevity:1, verified:true },
+  { nameZh:"無極烏龍", name:"Oolang Infini", brand:"Atelier Cologne", year:"2010", top:["佛手柑","烏龍茶"], middle:["茉莉","橙花","皮革"], base:["煙草花","癒創木","麝香"], description:"武夷大紅袍的茶香繚繞，皮革煙草的靜謐時刻，最耐聞的木質茶香。", longevity:1, verified:true },
+  { nameZh:"醉心檸香", name:"Cédrat Enivrant", brand:"Atelier Cologne", year:"2015", top:["香櫞","佛手柑","薄荷"], middle:["萊姆","杜松子","羅勒"], base:["香根草","欖香脂","麝香"], description:"微醺的香櫞琴費士，薄荷萊姆的沁涼氣泡，夏夜露台的一杯調酒。", longevity:1, verified:true },
+  { nameZh:"玫瑰之水", name:"Eau Rose", brand:"Diptyque", year:"2012", top:["佛手柑","黑醋栗","荔枝"], middle:["茉莉","天竺葵","玫瑰"], base:["麝香","維吉尼亞雪松","白蜂蜜"], description:"晨露玫瑰花瓣的淡雅清甜，荔枝的俏皮多汁，從清晨到夜晚的玫瑰漫步。", longevity:1, verified:true },
+  { nameZh:"N°5 低調奢華版", name:"N°5 Eau Première", brand:"Chanel", year:"2008", top:["醛","依蘭","橙花","佛手柑","檸檬"], middle:["茉莉","五月玫瑰","鈴蘭"], base:["香草","香根草","白麝香"], description:"N°5 的輕盈現代演繹，醛香如絲綢般柔化，白花與香草的清透光暈。", longevity:2, verified:true },
+  { nameZh:"柑橘綠茶", name:"Mandarin & Green Tea", brand:"Acca Kappa", year:"2019", top:["橙","橘子","葡萄柚","佛手柑"], middle:["玫瑰","綠茶"], base:["麝香"], description:"地中海仲夏的柑橘綠茶，明亮多汁的假期氣息，裝在瓶子裡的豔陽午後。", longevity:1, verified:true },
 ];
 
 // ── 持久儲存：IndexedDB ──────────────────────────────
@@ -512,7 +526,7 @@ const ST = {
   tarot: null,            // { card, perfume, oracle, flipped }
   tarotLoading: false,
 };
-function emptyForm() { return { name:"", nameZh:"", brand:"", year:"", top:"", middle:"", base:"", description:"", longevity:"2" }; }
+function emptyForm() { return { name:"", nameZh:"", brand:"", year:"", top:"", middle:"", base:"", description:"" }; }
 
 // ── 邏輯 ──────────────────────────────────────────────
 // 取一款香水的全部香調字串
@@ -731,7 +745,7 @@ function openEditForm(item) {
   ST.form = {
     name: item.name||"", nameZh: item.nameZh||"", brand: item.brand||"", year: item.year||"",
     top: ((item.notes&&item.notes.top)||[]).join("、"), middle: ((item.notes&&item.notes.middle)||[]).join("、"), base: ((item.notes&&item.notes.base)||[]).join("、"),
-    description: item.description||"", longevity: item.longevity ? String(item.longevity) : "2",
+    description: item.description||"",
   };
   ST.editingId = item.id; ST.formError = null; ST.showForm = true; render();
 }
@@ -741,12 +755,12 @@ function fillFromLibrary(idx) {
   ST.form = {
     name: p.name||"", nameZh: p.nameZh||"", brand: p.brand||"", year: p.year||"",
     top: (p.top||[]).join("、"), middle: (p.middle||[]).join("、"), base: (p.base||[]).join("、"),
-    description: p.description||"", longevity: p.longevity ? String(p.longevity) : "2",
+    description: p.description||"",
   };
   ST.formError = null; render();
 }
 function syncFormFromInputs() {
-  ["name","nameZh","brand","year","top","middle","base","description","longevity"].forEach((k) => {
+  ["name","nameZh","brand","year","top","middle","base","description"].forEach((k) => {
     const el = document.getElementById("f-" + k);
     if (el) ST.form[k] = el.value;
   });
@@ -759,7 +773,6 @@ async function saveForm() {
   const base = {
     name: f.name.trim() || f.nameZh.trim(), nameZh: f.nameZh.trim() || f.name.trim(),
     brand: f.brand.trim(), year: f.year.trim(), notes: notes, description: f.description.trim(),
-    longevity: Number(f.longevity) || 2,
   };
   try {
     if (ST.editingId) {
@@ -815,12 +828,11 @@ function render() {
       brandNames.map((b) => '<button class="fchip' + (ST.collectionBrand === b ? ' on' : '') + '" data-colbrand="' + esc(b) + '">' + esc(b) + '</button>').join("") + '</div>';
     const shownBrands = ST.collectionBrand ? [ST.collectionBrand] : brandNames;
     const cardHTML = (item) => {
-      const badge = item.longevity ? '<span class="long-badge">持香 ' + LONG_LABELS[item.longevity] + '</span>' : "";
       const desc = item.description ? '<p class="c-desc">' + esc(item.description) + '</p>' : "";
       return '<div class="card"><div class="card-actions"><button class="icon-btn" data-edit="' + item.id + '">' + IC.pencil() + '</button><button class="icon-btn danger" data-del="' + item.id + '">' + IC.trash() + '</button></div>' +
         '<div class="card-img">' + IC.droplet(24) + '</div>' +
         '<div class="c-brand">' + esc(item.brand || "—") + (item.year ? ' · ' + esc(item.year) : '') + '</div>' +
-        '<div class="c-name">' + esc(item.nameZh) + '</div><div class="c-orig">' + esc(item.name) + '</div>' + desc + badge + pyramidHTML(item.notes, true) + '</div>';
+        '<div class="c-name">' + esc(item.nameZh) + '</div><div class="c-orig">' + esc(item.name) + '</div>' + desc + pyramidHTML(item.notes, true) + '</div>';
     };
     listHTML = selector + shownBrands.map((b) => {
       return '<div class="brand-group"><div class="brand-head"><span class="brand-name">' + esc(b) + '</span><span class="brand-count">' + groups[b].length + '</span><span class="brand-line"></span></div>' +
@@ -840,7 +852,6 @@ function render() {
       '<div class="field"><div class="f-label">中調</div><input class="input" id="f-middle" value="' + esc(f.middle) + '" placeholder="鳶尾、皮革"></div>' +
       '<div class="field"><div class="f-label">後調</div><input class="input" id="f-base" value="' + esc(f.base) + '" placeholder="檀香、雪松、麝香"></div>' +
       '<div class="field"><div class="f-label">描述（選填）</div><input class="input" id="f-description" value="' + esc(f.description) + '" placeholder="一句話形容它的氣味性格"></div>' +
-      '<div class="field"><div class="f-label">持香度</div><select class="input" id="f-longevity"><option value="1"' + (f.longevity==="1"?' selected':'') + '>清淡（約 2–4 小時，貼膚淡香）</option><option value="2"' + (f.longevity==="2"?' selected':'') + '>適中（約 4–6 小時）</option><option value="3"' + (f.longevity==="3"?' selected':'') + '>持久（6 小時以上，擴散明顯）</option></select></div>' +
       errHTML + '<button class="save-btn" id="save-form">' + (ST.editingId ? '儲存修改' : '加入收藏') + '</button></div></div>';
   }
 
@@ -861,10 +872,9 @@ function render() {
     } else {
       const rows = fr.list.map((r, i) => {
         const p = r.perfume;
-        const badge = p.longevity ? '<span class="long-badge">持香 ' + LONG_LABELS[p.longevity] + '</span>' : "";
         const why = r.reasons.length ? '<div class="rec-hits">符合：' + r.reasons.map((m) => '<span class="hit-pill">' + esc(m) + '</span>').join("") + '</div>' : "";
         const orig = p.name && p.name !== p.nameZh ? '<span class="rl-orig">' + esc(p.name) + '</span>' : "";
-        return '<div class="rec-row"><div class="rl-rank">' + (i + 1) + '</div><div class="rl-body"><div class="rl-title">' + esc(p.nameZh) + ' ' + orig + '</div><div class="rl-brand">' + esc(p.brand || "—") + '</div>' + why + pyramidHTML(p.notes, true) + '</div><div class="rl-side">' + badge + '</div></div>';
+        return '<div class="rec-row"><div class="rl-rank">' + (i + 1) + '</div><div class="rl-body"><div class="rl-title">' + esc(p.nameZh) + ' ' + orig + '</div><div class="rl-brand">' + esc(p.brand || "—") + '</div>' + why + pyramidHTML(p.notes, true) + '</div></div>';
       }).join("");
       resultHTML = '<div class="rec-list"><div class="rec-head"><span class="rec-tag">' + IC.sparkles() + ' 為你推薦</span><span class="rec-count">' + fr.list.length + ' 款</span></div>' + rows + '</div>';
     }
@@ -907,9 +917,8 @@ function render() {
       const fortune = t.fortune ? '<div class="tarot-fortune"><div class="fortune-label">' + fLabel + '</div>' + esc(t.fortune) + '</div>' : "";
       let pf = '<div class="hint">收藏裡還沒有適合的香水。</div>';
       if (p) {
-        const badge = p.longevity ? '<span class="long-badge">持香 ' + LONG_LABELS[p.longevity] + '</span>' : "";
         const orig = p.name && p.name !== p.nameZh ? '<span class="rl-orig">' + esc(p.name) + '</span>' : "";
-        pf = '<div class="tarot-perfume"><div class="rec-tag">' + IC.sparkles() + ' 今日幸運香水</div><div class="rec-name">' + esc(p.nameZh) + ' ' + orig + '</div><div class="rl-brand">' + esc(p.brand || "—") + '</div>' + badge + pyramidHTML(p.notes, true) + '</div>';
+        pf = '<div class="tarot-perfume"><div class="rec-tag">' + IC.sparkles() + ' 今日幸運香水</div><div class="rec-name">' + esc(p.nameZh) + ' ' + orig + '</div><div class="rl-brand">' + esc(p.brand || "—") + '</div>' + pyramidHTML(p.notes, true) + '</div>';
       }
       const src = t.card.source === "fallback" ? '<div class="tarot-src">（離線牌庫）</div>' : "";
       body = '<div class="tarot-result"><div class="tarot-card front' + (t.reversed ? ' reversed' : '') + '">' +
@@ -988,7 +997,6 @@ async function seedIfFirstRun(rawItems) {
     year: p.year,
     notes: { top: p.top || [], middle: p.middle || [], base: p.base || [] },
     description: p.description || "",
-    longevity: p.longevity || 2,
   }));
   for (const item of seededItems) {
     try { await store.put(item); } catch (e) {}
@@ -1013,7 +1021,6 @@ async function seedIfFirstRun(rawItems) {
         item.year = lib.year || "";
         item.notes = { top: lib.top || [], middle: lib.middle || [], base: lib.base || [] };
         item.description = lib.description || "";
-        item.longevity = lib.longevity || item.longevity || 2;
         try { await store.put(item); } catch (e) {}
       }
     }
@@ -1022,6 +1029,21 @@ async function seedIfFirstRun(rawItems) {
   const savedTheme = raw.find((x) => x.id === "pref_theme");
   if (savedTheme && savedTheme.value === "dark") ST.theme = "dark";
   applyTheme();
+  // 一次性補灌 v58：香水庫新增的款，若收藏沒有就補進去（依中英文名比對）
+  if (!raw.some((x) => x.id === "libtopup_58")) {
+    const now = Date.now();
+    let ti = 0;
+    for (const p of LIBRARY) {
+      const exists = ST.collection.some((c) => (p.name && c.name === p.name) || (p.nameZh && c.nameZh === p.nameZh));
+      if (!exists) {
+        const item = { id: "seed_t58_" + (ti++), savedAt: now - ti, name: p.name || p.nameZh, nameZh: p.nameZh || p.name, brand: p.brand, year: p.year, notes: { top: p.top || [], middle: p.middle || [], base: p.base || [] }, description: p.description || "" };
+        try { await store.put(item); } catch (e) {}
+        ST.collection.push(item);
+      }
+    }
+    ST.collection.sort((a,b)=>b.savedAt-a.savedAt);
+    try { await store.put({ id: "libtopup_58", savedAt: 0, _marker: true }); } catch (e) {}
+  }
   const savedTarot = raw.find((x) => x.id === "tarot_today");
   if (savedTarot && savedTarot.value) ST.tarotSaved = savedTarot.value;
   try { await seedIfFirstRun(raw); } catch (e) {}
