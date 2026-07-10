@@ -980,7 +980,8 @@ const SEED_MARKER = "seeded_v1";
 async function seedIfFirstRun(rawItems) {
   const already = rawItems.some((x) => x.id === SEED_MARKER);
   if (already) return; // 已經灌過（或使用者已略過），不再動作
-  const userItems = rawItems.filter((x) => !x._marker);
+  // 用目前實際的收藏狀態判斷（前面的 migration 可能已補灌），避免重複灌入造成數量翻倍
+  const userItems = ST.collection.filter((x) => !x._marker);
   if (userItems.length > 0) {
     // 收藏已有使用者資料 → 只補 marker，不灌、不覆蓋
     try { await store.put({ id: SEED_MARKER, savedAt: 0, _marker: true }); } catch (e) {}
@@ -1030,7 +1031,8 @@ async function seedIfFirstRun(rawItems) {
   if (savedTheme && savedTheme.value === "dark") ST.theme = "dark";
   applyTheme();
   // 一次性去重 + 補灌 v60：以中文名為唯一鍵（每款必有），修正空英文名造成的重複
-  if (!raw.some((x) => x.id === "dedup_v60")) {
+  // v61：修正首次啟動時 dedup 補灌與 seedIfFirstRun 重複灌入導致收藏數量翻倍（例如 58 → 116），重跑一次去重清理
+  if (!raw.some((x) => x.id === "dedup_v61")) {
     const keyOf = (o) => String((o.nameZh || o.name || "")).trim();
     // 同步 seeded 項目為香水庫最新資料
     for (const item of ST.collection) {
@@ -1069,7 +1071,7 @@ async function seedIfFirstRun(rawItems) {
     }
     for (const item of ST.collection) { try { await store.put(item); } catch (e) {} }
     ST.collection.sort((a,b)=>b.savedAt-a.savedAt);
-    try { await store.put({ id: "dedup_v60", savedAt: 0, _marker: true }); } catch (e) {}
+    try { await store.put({ id: "dedup_v61", savedAt: 0, _marker: true }); } catch (e) {}
   }
   const savedTarot = raw.find((x) => x.id === "tarot_today");
   if (savedTarot && savedTarot.value) ST.tarotSaved = savedTarot.value;
