@@ -236,11 +236,10 @@
   .brand-count { font-size: 11px; color: var(--muted); background: var(--border-soft); border-radius: 999px; padding: 1px 8px; }
   .brand-line { flex: 1; height: 1px; background: linear-gradient(90deg, rgba(201,168,92,0.3), transparent); }
 
-  .footer { max-width: 960px; margin: 64px auto 0; text-align: center; }
-  .footer-rule { display: flex; align-items: center; gap: 12px; margin-bottom: 16px; }
-  .footer-rule::before, .footer-rule::after { content: ""; flex: 1; height: 1px; background: linear-gradient(90deg, transparent, rgba(201,168,92,0.35), transparent); }
-  .footer-rule span { color: rgba(201,168,92,0.7); font-size: 11px; }
-  .footer-text { font-size: 11px; letter-spacing: 2.5px; text-transform: uppercase; color: var(--muted-3); }
+  .footer { display: grid; grid-template-columns: minmax(24px, 1fr) auto minmax(24px, 1fr); align-items: center; gap: 14px; max-width: 960px; margin: 64px auto 0; color: var(--muted); font-family: 'Cormorant Garamond', 'Noto Serif TC', Georgia, serif; font-size: 12px; font-weight: 600; letter-spacing: 1.2px; text-align: center; }
+  .footer::before, .footer::after { height: 1px; background: linear-gradient(90deg, transparent, rgba(201,168,92,0.35)); content: ""; }
+  .footer::after { background: linear-gradient(90deg, rgba(201,168,92,0.35), transparent); }
+  .footer-text { white-space: nowrap; }
 
   button:focus-visible, input:focus-visible, select:focus-visible { outline: 2px solid rgba(201,168,92,0.6); outline-offset: 2px; }
   @media (prefers-reduced-motion: reduce) {
@@ -944,7 +943,7 @@ function render() {
     (ST.tab === "filter" ? filterPanel : tarotPanel) +
     '<div class="wide col-head" id="col-toggle"><span class="col-title">我的收藏</span><span class="count">' + ST.collection.length + '</span><span class="col-arrow">' + (ST.collectionCollapsed ? '展開 ▼' : '收起 ▲') + '</span></div>' +
     (ST.collectionCollapsed ? '' : '<div class="wide">' + listHTML + '</div>') +
-    '<footer class="footer"><div class="footer-rule"><span>✦</span></div><div class="footer-text">©2026 Cryogenically</div></footer>' +
+    '<footer class="footer"><div class="footer-text">©2026 Cryogenically</div></footer>' +
     modalHTML;
 
   bind();
@@ -1072,6 +1071,33 @@ async function seedIfFirstRun(rawItems) {
     for (const item of ST.collection) { try { await store.put(item); } catch (e) {} }
     ST.collection.sort((a,b)=>b.savedAt-a.savedAt);
     try { await store.put({ id: "dedup_v61", savedAt: 0, _marker: true }); } catch (e) {}
+  }
+  // v62：舊版曾以「龍首」收錄 The World According to Arthur；統一為「龍」並移除重複項目
+  if (!raw.some((x) => x.id === "dedup_v62")) {
+    const arthurLib = LIBRARY.find((p) => p.name === "The World According to Arthur");
+    const arthurItems = ST.collection.filter((item) =>
+      item.name === "The World According to Arthur" || ["龍", "龍首"].includes(String(item.nameZh || "").trim())
+    );
+    if (arthurLib && arthurItems.length) {
+      const keeper = arthurItems.slice().sort((a, b) => {
+        const aSeed = String(a.id).startsWith("seed") ? 1 : 0;
+        const bSeed = String(b.id).startsWith("seed") ? 1 : 0;
+        return aSeed - bSeed || Number(b.savedAt || 0) - Number(a.savedAt || 0);
+      })[0];
+      keeper.name = arthurLib.name;
+      keeper.nameZh = "龍";
+      keeper.brand = arthurLib.brand;
+      keeper.year = arthurLib.year;
+      keeper.notes = { top: arthurLib.top || [], middle: arthurLib.middle || [], base: arthurLib.base || [] };
+      keeper.description = arthurLib.description || "";
+      try { await store.put(keeper); } catch (e) {}
+      for (const item of arthurItems) {
+        if (item.id !== keeper.id) { try { await store.del(item.id); } catch (e) {} }
+      }
+      const duplicateIds = new Set(arthurItems.filter((item) => item.id !== keeper.id).map((item) => item.id));
+      ST.collection = ST.collection.filter((item) => !duplicateIds.has(item.id));
+    }
+    try { await store.put({ id: "dedup_v62", savedAt: 0, _marker: true }); } catch (e) {}
   }
   const savedTarot = raw.find((x) => x.id === "tarot_today");
   if (savedTarot && savedTarot.value) ST.tarotSaved = savedTarot.value;
