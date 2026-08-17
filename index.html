@@ -231,15 +231,21 @@
 
   .brand-group { margin-bottom: 30px; }
   .col-brand-bar { display: flex; flex-wrap: wrap; gap: 7px; margin: 0 0 20px; }
+  .fav-chip { display: inline-flex; align-items: center; gap: 5px; }
+  .fav-chip.on { border-color: rgba(188,100,116,0.6) !important; background: rgba(188,100,116,0.14) !important; color: #A94F60 !important; }
+  .fav-n { font-size: 10px; opacity: .8; }
+  .icon-btn.fav-on { border-color: rgba(188,100,116,0.5); }
+  .icon-btn svg { display: block; }
   .brand-head { display: flex; align-items: center; gap: 10px; margin: 0 0 14px; }
   .brand-name { font-family: 'Cormorant Garamond', 'Noto Serif TC', Georgia, serif; font-size: 20px; font-weight: 700; color: var(--gold-text); letter-spacing: 0.5px; }
   .brand-count { font-size: 11px; color: var(--muted); background: var(--border-soft); border-radius: 999px; padding: 1px 8px; }
   .brand-line { flex: 1; height: 1px; background: linear-gradient(90deg, rgba(201,168,92,0.3), transparent); }
 
-  .footer { display: grid; grid-template-columns: minmax(24px, 1fr) auto minmax(24px, 1fr); align-items: center; gap: 14px; max-width: 960px; margin: 64px auto 0; color: var(--muted); font-family: 'Cormorant Garamond', 'Noto Serif TC', Georgia, serif; font-size: 12px; font-weight: 600; letter-spacing: 1.2px; text-align: center; }
-  .footer::before, .footer::after { height: 1px; background: linear-gradient(90deg, transparent, rgba(201,168,92,0.35)); content: ""; }
-  .footer::after { background: linear-gradient(90deg, rgba(201,168,92,0.35), transparent); }
-  .footer-text { white-space: nowrap; }
+  .footer { max-width: 960px; margin: 64px auto 0; text-align: center; }
+  .footer-rule { display: flex; align-items: center; gap: 12px; margin-bottom: 16px; }
+  .footer-rule::before, .footer-rule::after { content: ""; flex: 1; height: 1px; background: linear-gradient(90deg, transparent, rgba(201,168,92,0.35), transparent); }
+  .footer-rule span { color: rgba(201,168,92,0.7); font-size: 11px; }
+  .footer-text { font-size: 11px; letter-spacing: 2.5px; text-transform: uppercase; color: var(--muted-3); }
 
   button:focus-visible, input:focus-visible, select:focus-visible { outline: 2px solid rgba(201,168,92,0.6); outline-offset: 2px; }
   @media (prefers-reduced-motion: reduce) {
@@ -504,6 +510,7 @@ const IC = {
   trash: (sz=13,c="#9C5C5C") => '<svg width="'+sz+'" height="'+sz+'" viewBox="0 0 24 24" fill="none" stroke="'+c+'" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>',
   pencil: (sz=13,c="#8D8478") => '<svg width="'+sz+'" height="'+sz+'" viewBox="0 0 24 24" fill="none" stroke="'+c+'" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4z"/></svg>',
   sparkles: (sz=11,c="#C9A85C") => '<svg width="'+sz+'" height="'+sz+'" viewBox="0 0 24 24" fill="none" stroke="'+c+'" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l1.9 5.8L19.5 11l-5.6 2.2L12 19l-1.9-5.8L4.5 11l5.6-2.2z"/></svg>',
+  heart: (sz=15,c="#BC6474",fill="none") => '<svg width="'+sz+'" height="'+sz+'" viewBox="0 0 24 24" fill="'+fill+'" stroke="'+c+'" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M20.8 4.6a5.5 5.5 0 0 0-7.8 0L12 5.7l-1-1.1a5.5 5.5 0 0 0-7.8 7.8l1.1 1.1L12 21.2l7.7-7.7 1.1-1.1a5.5 5.5 0 0 0 0-7.8z"/></svg>',
   moon: (sz=17,c="#FFFFFF") => '<svg width="'+sz+'" height="'+sz+'" viewBox="0 0 24 24" fill="none" stroke="'+c+'" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>',
   sun: (sz=17,c="#FFFFFF") => '<svg width="'+sz+'" height="'+sz+'" viewBox="0 0 24 24" fill="none" stroke="'+c+'" stroke-width="1.7" stroke-linecap="round"><circle cx="12" cy="12" r="4.2"/><line x1="12" y1="2" x2="12" y2="4.6"/><line x1="12" y1="19.4" x2="12" y2="22"/><line x1="4.9" y1="4.9" x2="6.7" y2="6.7"/><line x1="17.3" y1="17.3" x2="19.1" y2="19.1"/><line x1="2" y1="12" x2="4.6" y2="12"/><line x1="19.4" y1="12" x2="22" y2="12"/><line x1="4.9" y1="19.1" x2="6.7" y2="17.3"/><line x1="17.3" y1="6.7" x2="19.1" y2="4.9"/></svg>',
   spinner: (sz=16,c="#8D8478") => '<svg class="spin" width="'+sz+'" height="'+sz+'" viewBox="0 0 24 24" fill="none" stroke="'+c+'" stroke-width="1.8" stroke-linecap="round"><line x1="12" y1="2" x2="12" y2="6"/><line x1="12" y1="18" x2="12" y2="22"/><line x1="4.9" y1="4.9" x2="7.8" y2="7.8"/><line x1="16.2" y1="16.2" x2="19.1" y2="19.1"/><line x1="2" y1="12" x2="6" y2="12"/><line x1="18" y1="12" x2="22" y2="12"/><line x1="4.9" y1="19.1" x2="7.8" y2="16.2"/><line x1="16.2" y1="7.8" x2="19.1" y2="4.9"/></svg>',
@@ -739,6 +746,14 @@ function runFilter() {
   render();
 }
 
+async function toggleFavorite(id) {
+  const item = ST.collection.find((c) => c.id === id);
+  if (!item) return;
+  item.favorite = !item.favorite;
+  try { await store.put(item); } catch (e) {}
+  render();
+}
+
 function openAddForm() { ST.form = emptyForm(); ST.editingId = null; ST.formError = null; ST.showForm = true; render(); }
 function openEditForm(item) {
   ST.form = {
@@ -821,22 +836,32 @@ function render() {
       (groups[b] = groups[b] || []).push(item);
     });
     const brandNames = Object.keys(groups).sort((a, b) => a.localeCompare(b, "zh-Hant"));
+    const favItems = ST.collection.filter((x) => x.favorite);
     // 只看某品牌：品牌已不存在（刪光）時自動回到全部
-    if (ST.collectionBrand && !groups[ST.collectionBrand]) ST.collectionBrand = null;
-    const selector = '<div class="col-brand-bar"><button class="fchip' + (!ST.collectionBrand ? ' on' : '') + '" data-colbrand="">全部</button>' +
+    if (ST.collectionBrand && ST.collectionBrand !== "__fav__" && !groups[ST.collectionBrand]) ST.collectionBrand = null;
+    if (ST.collectionBrand === "__fav__" && !favItems.length) ST.collectionBrand = null;
+    const favChip = '<button class="fchip fav-chip' + (ST.collectionBrand === "__fav__" ? ' on' : '') + '" data-colbrand="__fav__">' + IC.heart(12, ST.collectionBrand === "__fav__" ? "#BC6474" : "currentColor", ST.collectionBrand === "__fav__" ? "#BC6474" : "none") + ' 我的最愛' + (favItems.length ? ' <span class="fav-n">' + favItems.length + '</span>' : '') + '</button>';
+    const selector = '<div class="col-brand-bar"><button class="fchip' + (!ST.collectionBrand ? ' on' : '') + '" data-colbrand="">全部</button>' + favChip +
       brandNames.map((b) => '<button class="fchip' + (ST.collectionBrand === b ? ' on' : '') + '" data-colbrand="' + esc(b) + '">' + esc(b) + '</button>').join("") + '</div>';
-    const shownBrands = ST.collectionBrand ? [ST.collectionBrand] : brandNames;
+    const shownBrands = (ST.collectionBrand && ST.collectionBrand !== "__fav__") ? [ST.collectionBrand] : brandNames;
     const cardHTML = (item) => {
       const desc = item.description ? '<p class="c-desc">' + esc(item.description) + '</p>' : "";
-      return '<div class="card"><div class="card-actions"><button class="icon-btn" data-edit="' + item.id + '">' + IC.pencil() + '</button><button class="icon-btn danger" data-del="' + item.id + '">' + IC.trash() + '</button></div>' +
+      const fav = !!item.favorite;
+      return '<div class="card"><div class="card-actions"><button class="icon-btn' + (fav ? ' fav-on' : '') + '" data-fav="' + item.id + '" title="' + (fav ? '取消我的最愛' : '加入我的最愛') + '">' + IC.heart(13, fav ? "#BC6474" : "currentColor", fav ? "#BC6474" : "none") + '</button><button class="icon-btn" data-edit="' + item.id + '">' + IC.pencil() + '</button><button class="icon-btn danger" data-del="' + item.id + '">' + IC.trash() + '</button></div>' +
         '<div class="card-img">' + IC.droplet(24) + '</div>' +
         '<div class="c-brand">' + esc(item.brand || "—") + (item.year ? ' · ' + esc(item.year) : '') + '</div>' +
         '<div class="c-name">' + esc(item.nameZh) + '</div><div class="c-orig">' + esc(item.name) + '</div>' + desc + pyramidHTML(item.notes, true) + '</div>';
     };
+    if (ST.collectionBrand === "__fav__") {
+      listHTML = selector + (favItems.length
+        ? '<div class="brand-group"><div class="brand-head"><span class="brand-name">我的最愛</span><span class="brand-count">' + favItems.length + '</span><span class="brand-line"></span></div><div class="grid">' + favItems.map(cardHTML).join("") + '</div></div>'
+        : '<div class="empty">還沒有標記任何最愛。點卡片右上的愛心，收藏你用過喜歡的香水。</div>');
+    } else {
     listHTML = selector + shownBrands.map((b) => {
       return '<div class="brand-group"><div class="brand-head"><span class="brand-name">' + esc(b) + '</span><span class="brand-count">' + groups[b].length + '</span><span class="brand-line"></span></div>' +
         '<div class="grid">' + groups[b].map(cardHTML).join("") + '</div></div>';
     }).join("");
+    }
   }
 
   let modalHTML = "";
@@ -943,7 +968,7 @@ function render() {
     (ST.tab === "filter" ? filterPanel : tarotPanel) +
     '<div class="wide col-head" id="col-toggle"><span class="col-title">我的收藏</span><span class="count">' + ST.collection.length + '</span><span class="col-arrow">' + (ST.collectionCollapsed ? '展開 ▼' : '收起 ▲') + '</span></div>' +
     (ST.collectionCollapsed ? '' : '<div class="wide">' + listHTML + '</div>') +
-    '<footer class="footer"><div class="footer-text">©2026 Cryogenically</div></footer>' +
+    '<footer class="footer"><div class="footer-rule"><span>✦</span></div><div class="footer-text">©2026 Cryogenically</div></footer>' +
     modalHTML;
 
   bind();
@@ -961,6 +986,7 @@ function bind() {
   const redraw = document.getElementById("redraw"); if (redraw) redraw.onclick = () => drawTarot(true);
   const tt = document.getElementById("theme-toggle"); if (tt) tt.onclick = toggleTheme;
   const ct = document.getElementById("col-toggle"); if (ct) ct.onclick = () => { ST.collectionCollapsed = !ST.collectionCollapsed; render(); };
+  document.querySelectorAll("[data-fav]").forEach((b) => b.onclick = () => toggleFavorite(b.getAttribute("data-fav")));
   document.querySelectorAll("[data-colbrand]").forEach((b) => b.onclick = () => { syncFilterInputs(); ST.collectionBrand = b.getAttribute("data-colbrand") || null; render(); });
   document.querySelectorAll("[data-facet]").forEach((b) => b.onclick = () => toggleFilter(b.getAttribute("data-facet"), b.getAttribute("data-fkey")));
   const rf = document.getElementById("run-filter"); if (rf) rf.onclick = runFilter;
@@ -979,8 +1005,7 @@ const SEED_MARKER = "seeded_v1";
 async function seedIfFirstRun(rawItems) {
   const already = rawItems.some((x) => x.id === SEED_MARKER);
   if (already) return; // 已經灌過（或使用者已略過），不再動作
-  // 用目前實際的收藏狀態判斷（前面的 migration 可能已補灌），避免重複灌入造成數量翻倍
-  const userItems = ST.collection.filter((x) => !x._marker);
+  const userItems = rawItems.filter((x) => !x._marker);
   if (userItems.length > 0) {
     // 收藏已有使用者資料 → 只補 marker，不灌、不覆蓋
     try { await store.put({ id: SEED_MARKER, savedAt: 0, _marker: true }); } catch (e) {}
@@ -1030,8 +1055,7 @@ async function seedIfFirstRun(rawItems) {
   if (savedTheme && savedTheme.value === "dark") ST.theme = "dark";
   applyTheme();
   // 一次性去重 + 補灌 v60：以中文名為唯一鍵（每款必有），修正空英文名造成的重複
-  // v61：修正首次啟動時 dedup 補灌與 seedIfFirstRun 重複灌入導致收藏數量翻倍（例如 58 → 116），重跑一次去重清理
-  if (!raw.some((x) => x.id === "dedup_v61")) {
+  if (!raw.some((x) => x.id === "dedup_v60")) {
     const keyOf = (o) => String((o.nameZh || o.name || "")).trim();
     // 同步 seeded 項目為香水庫最新資料
     for (const item of ST.collection) {
@@ -1070,34 +1094,7 @@ async function seedIfFirstRun(rawItems) {
     }
     for (const item of ST.collection) { try { await store.put(item); } catch (e) {} }
     ST.collection.sort((a,b)=>b.savedAt-a.savedAt);
-    try { await store.put({ id: "dedup_v61", savedAt: 0, _marker: true }); } catch (e) {}
-  }
-  // v62：舊版曾以「龍首」收錄 The World According to Arthur；統一為「龍」並移除重複項目
-  if (!raw.some((x) => x.id === "dedup_v62")) {
-    const arthurLib = LIBRARY.find((p) => p.name === "The World According to Arthur");
-    const arthurItems = ST.collection.filter((item) =>
-      item.name === "The World According to Arthur" || ["龍", "龍首"].includes(String(item.nameZh || "").trim())
-    );
-    if (arthurLib && arthurItems.length) {
-      const keeper = arthurItems.slice().sort((a, b) => {
-        const aSeed = String(a.id).startsWith("seed") ? 1 : 0;
-        const bSeed = String(b.id).startsWith("seed") ? 1 : 0;
-        return aSeed - bSeed || Number(b.savedAt || 0) - Number(a.savedAt || 0);
-      })[0];
-      keeper.name = arthurLib.name;
-      keeper.nameZh = "龍";
-      keeper.brand = arthurLib.brand;
-      keeper.year = arthurLib.year;
-      keeper.notes = { top: arthurLib.top || [], middle: arthurLib.middle || [], base: arthurLib.base || [] };
-      keeper.description = arthurLib.description || "";
-      try { await store.put(keeper); } catch (e) {}
-      for (const item of arthurItems) {
-        if (item.id !== keeper.id) { try { await store.del(item.id); } catch (e) {} }
-      }
-      const duplicateIds = new Set(arthurItems.filter((item) => item.id !== keeper.id).map((item) => item.id));
-      ST.collection = ST.collection.filter((item) => !duplicateIds.has(item.id));
-    }
-    try { await store.put({ id: "dedup_v62", savedAt: 0, _marker: true }); } catch (e) {}
+    try { await store.put({ id: "dedup_v60", savedAt: 0, _marker: true }); } catch (e) {}
   }
   const savedTarot = raw.find((x) => x.id === "tarot_today");
   if (savedTarot && savedTarot.value) ST.tarotSaved = savedTarot.value;
