@@ -538,6 +538,7 @@ const ST = {
   filterResult: null,
   collectionCollapsed: true,
   collectionBrand: null,
+  deletedKeys: [],
   theme: "light",
   tab: "filter",          // "filter" | "tarot"
   tarot: null,            // { card, perfume, oracle, flipped }
@@ -816,7 +817,15 @@ async function saveForm() {
 async function removeItem(id) {
   try {
     await store.del(id);
+    const gone = ST.collection.find((x) => x.id === id);
     ST.collection = ST.collection.filter((x) => x.id !== id);
+    if (gone) {
+      const k = String((gone.nameZh || gone.name || "")).trim();
+      if (k && ST.deletedKeys.indexOf(k) < 0) {
+        ST.deletedKeys.push(k);
+        try { await store.put({ id: "deleted_keys", savedAt: 0, _marker: true, value: ST.deletedKeys }); } catch (e) {}
+      }
+    }
     ST.filterResult = null;
     render();
   } catch (e) {}
@@ -1011,186 +1020,75 @@ function bind() {
 }
 
 // ── 啟動 ──────────────────────────────────────────────
-// 首次啟動時，自動把整個香水庫灌進收藏（只執行一次）
-const SEED_MARKER = "seeded_v1";
-async function seedIfFirstRun(rawItems) {
-  const already = rawItems.some((x) => x.id === SEED_MARKER);
-  if (already) return; // 已經灌過（或使用者已略過），不再動作
-  const userItems = rawItems.filter((x) => !x._marker);
-  if (userItems.length > 0) {
-    // 收藏已有使用者資料 → 只補 marker，不灌、不覆蓋
-    try { await store.put({ id: SEED_MARKER, savedAt: 0, _marker: true }); } catch (e) {}
-    return;
-  }
-  // 收藏為空 → 灌入整個香水庫
-  const now = Date.now();
-  const seededItems = LIBRARY.map((p, i) => ({
-    id: "seed_" + i,
-    savedAt: now - i,
-    name: p.name || p.nameZh,
-    nameZh: p.nameZh || p.name,
-    brand: p.brand,
-    year: p.year,
-    notes: { top: p.top || [], middle: p.middle || [], base: p.base || [] },
-    description: p.description || "",
-  }));
-  for (const item of seededItems) {
-    try { await store.put(item); } catch (e) {}
-  }
-  try { await store.put({ id: SEED_MARKER, savedAt: 0, _marker: true }); } catch (e) {}
-  ST.collection = seededItems.sort((a, b) => b.savedAt - a.savedAt);
-}
-
 (async function init() {
   let raw = [];
   try { raw = await store.all(); } catch (e) { raw = []; }
-  ST.collection = raw.filter((x) => !x._marker).sort((a,b)=>b.savedAt-a.savedAt);
-  // 一次性遷移 v2：自動灌入的項目（seed_ 開頭）依英文名或中文名比對香水庫，全欄位同步最新查證資料
-  if (!raw.some((x) => x.id === "libsync_v4")) {
-    for (const item of ST.collection) {
-      if (String(item.id).indexOf("seed_") !== 0) continue;
-      const lib = LIBRARY.find((p) => (p.name && p.name === item.name) || (p.nameZh && p.nameZh === item.nameZh));
-      if (lib) {
-        item.name = lib.name || item.name;
-        item.nameZh = lib.nameZh || item.nameZh;
-        item.brand = lib.brand || item.brand;
-        item.year = lib.year || "";
-        item.notes = { top: lib.top || [], middle: lib.middle || [], base: lib.base || [] };
-        item.description = lib.description || "";
-        try { await store.put(item); } catch (e) {}
-      }
-    }
-    try { await store.put({ id: "libsync_v4", savedAt: 0, _marker: true }); } catch (e) {}
-  }
-  // 一次性補灌 v63：香水庫新增款，收藏若缺就補上（中文名為鍵）
-  if (!raw.some((x) => x.id === "topup_v63")) {
-    const keyOf = (o) => String((o.nameZh || o.name || "")).trim();
-    const have = {};
-    ST.collection.forEach((c) => { have[keyOf(c)] = true; });
-    const now = Date.now(); let ti = 0;
-    for (const p of LIBRARY) {
-      const k = keyOf(p);
-      if (k && !have[k]) {
-        const item = { id: "seed_t63_" + (ti++), savedAt: now - ti, name: p.name || "", nameZh: p.nameZh || p.name, brand: p.brand, year: p.year, notes: { top: p.top || [], middle: p.middle || [], base: p.base || [] }, description: p.description || "" };
-        try { await store.put(item); } catch (e) {}
-        ST.collection.push(item); have[k] = true;
-      }
-    }
-    ST.collection.sort((a,b)=>b.savedAt-a.savedAt);
-    try { await store.put({ id: "topup_v63", savedAt: 0, _marker: true }); } catch (e) {}
-  }
-  // 一次性同步 v64：Robe White 香調改用 hetras 官網版
-  if (!raw.some((x) => x.id === "sync_v64")) {
-    const target = ST.collection.find((c) => c.nameZh === "No.39 Robe White");
-    const lib = LIBRARY.find((p) => p.nameZh === "No.39 Robe White");
-    if (target && lib) {
-      target.name = lib.name; target.brand = lib.brand;
-      target.notes = { top: lib.top, middle: lib.middle, base: lib.base };
-      target.description = lib.description;
-      try { await store.put(target); } catch (e) {}
-    }
-    try { await store.put({ id: "sync_v64", savedAt: 0, _marker: true }); } catch (e) {}
-  }
-  // 一次性補灌 v64b：新增款補進收藏
-  if (!raw.some((x) => x.id === "topup_v64b")) {
-    const keyOf = (o) => String((o.nameZh || o.name || "")).trim();
-    const have = {}; ST.collection.forEach((c) => { have[keyOf(c)] = true; });
-    const now = Date.now(); let ti = 0;
-    for (const p of LIBRARY) {
-      const k = keyOf(p);
-      if (k && !have[k]) {
-        const item = { id: "seed_t64b_" + (ti++), savedAt: now - ti, name: p.name || "", nameZh: p.nameZh || p.name, brand: p.brand, year: p.year, notes: { top: p.top || [], middle: p.middle || [], base: p.base || [] }, description: p.description || "" };
-        try { await store.put(item); } catch (e) {}
-        ST.collection.push(item); have[k] = true;
-      }
-    }
-    ST.collection.sort((a,b)=>b.savedAt-a.savedAt);
-    try { await store.put({ id: "topup_v64b", savedAt: 0, _marker: true }); } catch (e) {}
-  }
-  // 一次性同步 v65：After Snowfall 名稱更正為黎深
-  if (!raw.some((x) => x.id === "sync_v65")) {
-    const t = ST.collection.find((c) => c.nameZh === "雪落之後（預購中）");
-    const lib = LIBRARY.find((p) => p.name === "After Snowfall");
-    if (t && lib) {
-      t.nameZh = lib.nameZh; t.description = lib.description;
-      try { await store.put(t); } catch (e) {}
-    }
-    try { await store.put({ id: "sync_v65", savedAt: 0, _marker: true }); } catch (e) {}
-  }
-  // 一次性同步 v66：正式名稱 黎深·霽雪來信
-  if (!raw.some((x) => x.id === "sync_v66")) {
-    const t = ST.collection.find((c) => c.name === "After Snowfall");
-    const lib = LIBRARY.find((p) => p.name === "After Snowfall");
-    if (t && lib) {
-      t.nameZh = lib.nameZh; t.description = lib.description;
-      try { await store.put(t); } catch (e) {}
-    }
-    try { await store.put({ id: "sync_v66", savedAt: 0, _marker: true }); } catch (e) {}
-  }
-  // 一次性補灌 v69：新增款補進收藏
-  if (!raw.some((x) => x.id === "topup_v69")) {
-    const keyOf = (o) => String((o.nameZh || o.name || "")).trim();
-    const have = {}; ST.collection.forEach((c) => { have[keyOf(c)] = true; });
-    const now = Date.now(); let ti = 0;
-    for (const p of LIBRARY) {
-      const k = keyOf(p);
-      if (k && !have[k]) {
-        const item = { id: "seed_t69_" + (ti++), savedAt: now - ti, name: p.name || "", nameZh: p.nameZh || p.name, brand: p.brand, year: p.year, notes: { top: p.top || [], middle: p.middle || [], base: p.base || [] }, description: p.description || "" };
-        try { await store.put(item); } catch (e) {}
-        ST.collection.push(item); have[k] = true;
-      }
-    }
-    ST.collection.sort((a,b)=>b.savedAt-a.savedAt);
-    try { await store.put({ id: "topup_v69", savedAt: 0, _marker: true }); } catch (e) {}
-  }
+
+  // 讀取設定
   const savedTheme = raw.find((x) => x.id === "pref_theme");
   if (savedTheme && savedTheme.value === "dark") ST.theme = "dark";
   applyTheme();
-  // 一次性去重 + 補灌 v60：以中文名為唯一鍵（每款必有），修正空英文名造成的重複
-  if (!raw.some((x) => x.id === "dedup_v60")) {
-    const keyOf = (o) => String((o.nameZh || o.name || "")).trim();
-    // 同步 seeded 項目為香水庫最新資料
-    for (const item of ST.collection) {
-      if (String(item.id).indexOf("seed") !== 0) continue;
-      const lib = LIBRARY.find((p) => keyOf(p) === keyOf(item) || (p.name && p.name === item.name));
-      if (lib) {
-        item.name = lib.name || ""; item.nameZh = lib.nameZh || item.nameZh;
-        item.brand = lib.brand || item.brand; item.year = lib.year || "";
-        item.notes = { top: lib.top || [], middle: lib.middle || [], base: lib.base || [] };
-        item.description = lib.description || "";
-      }
-    }
-    // 去重（手動項目優先保留）
-    const seen = {};
-    const ordered = ST.collection.slice().sort((a, b) => (String(a.id).indexOf("seed")===0?1:0) - (String(b.id).indexOf("seed")===0?1:0));
-    const keep = [];
-    for (const item of ordered) {
-      const k = keyOf(item);
-      if (!k || seen[k]) { continue; }
-      seen[k] = true; keep.push(item);
-    }
-    const keepIds = new Set(keep.map((x) => x.id));
-    for (const item of ST.collection) {
-      if (!keepIds.has(item.id)) { try { await store.del(item.id); } catch (e) {} }
-    }
-    ST.collection = keep;
-    // 補上缺的款
-    const now = Date.now(); let ti = 0;
-    for (const p of LIBRARY) {
-      const k = keyOf(p);
-      if (k && !seen[k]) {
-        const item = { id: "seed_t60_" + (ti++), savedAt: now - ti, name: p.name || "", nameZh: p.nameZh || p.name, brand: p.brand, year: p.year, notes: { top: p.top || [], middle: p.middle || [], base: p.base || [] }, description: p.description || "" };
-        try { await store.put(item); } catch (e) {}
-        ST.collection.push(item); seen[k] = true;
-      }
-    }
-    for (const item of ST.collection) { try { await store.put(item); } catch (e) {} }
-    ST.collection.sort((a,b)=>b.savedAt-a.savedAt);
-    try { await store.put({ id: "dedup_v60", savedAt: 0, _marker: true }); } catch (e) {}
-  }
   const savedTarot = raw.find((x) => x.id === "tarot_today");
   if (savedTarot && savedTarot.value) ST.tarotSaved = savedTarot.value;
-  try { await seedIfFirstRun(raw); } catch (e) {}
+  const tomb = raw.find((x) => x.id === "deleted_keys");
+  ST.deletedKeys = (tomb && Array.isArray(tomb.value)) ? tomb.value : [];
+
+  // ── 自動校正（每次開啟都執行，冪等）──────────────────
+  // 不論資料目前是什麼狀態，都收斂成：香水庫全部 + 你手動新增的，各一份。
+  const keyOf = (o) => String((o.nameZh || o.name || "")).trim();
+  let items = raw.filter((x) => !x._marker);
+
+  // 1) 自動灌入的項目（seed 開頭）同步成香水庫最新資料
+  for (const it of items) {
+    if (String(it.id).indexOf("seed") !== 0) continue;
+    const lib = LIBRARY.find((p) => keyOf(p) === keyOf(it)) ||
+                LIBRARY.find((p) => p.name && it.name && p.name === it.name);
+    if (lib) {
+      it.name = lib.name || "";
+      it.nameZh = lib.nameZh || it.nameZh;
+      it.brand = lib.brand || it.brand;
+      it.year = lib.year || "";
+      it.notes = { top: lib.top || [], middle: lib.middle || [], base: lib.base || [] };
+      it.description = lib.description || "";
+    }
+  }
+
+  // 2) 去重：同一款只留一份（手動項目優先，其次有標記最愛的）
+  const score = (o) => (String(o.id).indexOf("seed") !== 0 ? 2 : 0) + (o.favorite ? 1 : 0);
+  const best = {};
+  for (const it of items) {
+    const k = keyOf(it);
+    if (!k) continue;
+    if (!best[k] || score(it) > score(best[k])) best[k] = it;
+  }
+  // 保留的那份若有任何一份被標最愛，就繼承最愛
+  for (const it of items) {
+    const k = keyOf(it);
+    if (k && it.favorite && best[k]) best[k].favorite = true;
+  }
+  const keep = Object.values(best);
+  const keepIds = new Set(keep.map((x) => x.id));
+  for (const it of items) {
+    if (!keepIds.has(it.id)) { try { await store.del(it.id); } catch (e) {} }
+  }
+
+  // 3) 補上香水庫裡缺少的款（使用者刪掉的不復活）
+  const have = {};
+  keep.forEach((x) => { have[keyOf(x)] = true; });
+  const deleted = {};
+  ST.deletedKeys.forEach((k) => { deleted[k] = true; });
+  const now = Date.now(); let ti = 0;
+  for (const p of LIBRARY) {
+    const k = keyOf(p);
+    if (!k || have[k] || deleted[k]) continue;
+    const item = { id: "lib_" + k, savedAt: now - (ti++), name: p.name || "", nameZh: p.nameZh || p.name, brand: p.brand, year: p.year, notes: { top: p.top || [], middle: p.middle || [], base: p.base || [] }, description: p.description || "" };
+    keep.push(item); have[k] = true;
+  }
+
+  // 4) 寫回
+  for (const it of keep) { try { await store.put(it); } catch (e) {} }
+  ST.collection = keep.sort((a, b) => b.savedAt - a.savedAt);
+
   ST.loading = false;
   render();
 })();
