@@ -511,7 +511,7 @@ const ST = {
   form: emptyForm(),
   filters: { season: [], family: [], mood: [], occasion: [] },
   searchText: "",
-  wantText: "", avoidText: "",
+  avoidText: "",
   filterResult: null,
   collectionCollapsed: true,
   collectionBrand: null,
@@ -678,7 +678,6 @@ async function generateAIFortune() {
 }
 function syncFilterInputs() {
   const q = document.getElementById("search-text"); if (q) ST.searchText = q.value;
-  const w = document.getElementById("want-text"); if (w) ST.wantText = w.value;
   const a = document.getElementById("avoid-text"); if (a) ST.avoidText = a.value;
 }
 function toggleFilter(facet, key) {
@@ -691,27 +690,30 @@ function toggleFilter(facet, key) {
 }
 function resetFilters() {
   ST.filters = { season: [], family: [], mood: [], occasion: [] };
-  ST.wantText = ""; ST.avoidText = ""; ST.searchText = ""; ST.filterResult = null;
+  ST.avoidText = ""; ST.searchText = ""; ST.filterResult = null;
   render();
 }
 function runFilter() {
-  const w = document.getElementById("want-text"); if (w) ST.wantText = w.value;
   const a = document.getElementById("avoid-text"); if (a) ST.avoidText = a.value;
   const q = document.getElementById("search-text"); if (q) ST.searchText = q.value;
-  const wantList = parseNotes(ST.wantText);
   const avoidList = parseNotes(ST.avoidText);
-  const search = ST.searchText.trim().toLowerCase();
+  // 搜尋欄（含想要的氣味）：用、，或空格分隔，每個關鍵字都要命中
+  const terms = [...new Set(String(ST.searchText || "").toLowerCase().split(/[、,，\s]+/).map((x) => x.trim()).filter(Boolean))];
 
   const activeFacets = [];
   ["season","family","mood","occasion"].forEach((f) => ST.filters[f].forEach((k) => activeFacets.push({ facet: f, key: k })));
 
   const scored = ST.collection.map((p) => {
     const all = allNotesOf(p);
-    let score = 0; const reasons = []; let excluded = false;
-    // 搜尋：中英文名、品牌、香調、描述任一命中（硬性條件）
-    if (search) {
+    let score = 0; const reasons = []; let excluded = false; let noteHits = 0;
+    // 搜尋：每個關鍵字都要出現在中英文名、品牌、香調或描述裡（硬性條件）
+    if (terms.length) {
       const hay = ((p.nameZh||"") + " " + (p.name||"") + " " + (p.brand||"") + " " + all + " " + (p.description||"")).toLowerCase();
-      if (hay.indexOf(search) < 0) excluded = true;
+      const notesLc = String(all).toLowerCase();
+      for (const t of terms) {
+        if (hay.indexOf(t) < 0) { excluded = true; break; }
+        if (notesLc.indexOf(t) >= 0) { noteHits++; reasons.push(t); }
+      }
     }
     // 想避開的氣味
     if (!excluded) for (const av of avoidList) { if (av && all.indexOf(av) >= 0) { excluded = true; break; } }
@@ -721,16 +723,15 @@ function runFilter() {
       const hit = opt.kw.filter((kw) => all.indexOf(kw) >= 0);
       if (hit.length) { score += hit.length; reasons.push(opt.label); }
     });
-    wantList.forEach((wk) => { if (wk && all.indexOf(wk) >= 0) { score += 2; reasons.push(wk); } });
-    return { perfume: p, score, reasons: [...new Set(reasons)], excluded };
+    return { perfume: p, score, noteHits, reasons: [...new Set(reasons)], excluded };
   });
 
-  const hasScoring = activeFacets.length > 0 || wantList.length > 0;
-  const hasAnyCondition = hasScoring || !!search || avoidList.length > 0;
+  const hasScoring = activeFacets.length > 0;
+  const hasAnyCondition = hasScoring || terms.length > 0 || avoidList.length > 0;
   let list = scored.filter((s) => !s.excluded);
   if (hasScoring) list = list.filter((s) => s.score > 0);
-  list.sort((a, b) => b.score - a.score);
-  // 有推薦條件才取前 6 名；只有搜尋／避開時列出全部符合的款
+  list.sort((a, b) => (b.score - a.score) || (b.noteHits - a.noteHits));
+  // 有勾季節／香調／心情／場合才取前 6 名；只有搜尋或避開時列出全部符合的款
   if (hasScoring) list = list.slice(0, 6);
   ST.filterResult = { list, hasAnyCondition, hasScoring, avoidActive: avoidList.length > 0 };
   render();
@@ -902,17 +903,16 @@ function render() {
     }
   }
   const filterBody =
-    '<div class="filter-sect"><input class="input" id="search-text" value="' + esc(ST.searchText) + '" placeholder="🔍 搜尋名稱、品牌、香調…"></div>' +
+    '<div class="filter-sect"><input class="input" id="search-text" value="' + esc(ST.searchText) + '" placeholder="🔍 名稱、品牌或想要的氣味，多個用、或空格分隔"></div>' +
     '<div class="filter-sect"><div class="f-sect-title">' + FACETS.season.title + '</div><div class="fchip-row">' + facetChips("season") + '</div></div>' +
     '<div class="filter-sect"><div class="f-sect-title">' + FACETS.family.title + '</div><div class="fchip-row">' + facetChips("family") + '</div></div>' +
     '<div class="filter-sect"><div class="f-sect-title">' + FACETS.mood.title + '</div><div class="fchip-row">' + facetChips("mood") + '</div></div>' +
     '<div class="filter-sect"><div class="f-sect-title">' + FACETS.occasion.title + '</div><div class="fchip-row">' + facetChips("occasion") + '</div></div>' +
-    '<div class="filter-sect"><div class="f-sect-title">想要的氣味（可選，用、分隔）</div><input class="input" id="want-text" value="' + esc(ST.wantText) + '" placeholder="例如：玫瑰、檀香"></div>' +
     '<div class="filter-sect"><div class="f-sect-title">想避開的氣味（可選）</div><input class="input" id="avoid-text" value="' + esc(ST.avoidText) + '" placeholder="例如：廣藿香、菸草"></div>' +
     '<div class="filter-btns"><button class="save-btn" id="run-filter" style="flex:1">推薦給我</button><button class="reset-btn" id="reset-filter">清除</button></div>' +
     resultHTML;
   const filterPanel =
-    '<div class="narrow panel"><div class="w-title">今天該擦哪一瓶？</div><div class="w-sub">搜尋或挑選品牌、季節、香調、心情等條件，按「推薦給我」，從收藏中挑出最適合的 6 款。（心情與場合由香調自動判斷，僅供參考）</div>' + filterBody + '</div>';
+    '<div class="narrow panel"><div class="w-title">今天該擦哪一瓶？</div><div class="w-sub">只用搜尋會列出所有符合的款；挑了季節、香調、心情或場合，就從中推薦最適合的 6 款。（心情與場合由香調自動判斷，僅供參考）</div>' + filterBody + '</div>';
 
   // ── 塔羅分頁 ──
   let tarotPanel = "";
