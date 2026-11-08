@@ -1,7 +1,7 @@
 {
   "name": "香水收藏室",
   "short_name": "香水收藏室",
-  "description": "管理你的香水收藏，依天氣推薦今日之選。",
+  "description": "管理你的香水收藏，依季節與心情挑選今日香水，附塔羅每日幸運香水。",
   "start_url": "./index.html",
   "display": "standalone",
   "background_color": "#0B1120",
