@@ -529,6 +529,87 @@ function allNotesOf(p) {
   return [].concat(p.notes && p.notes.top || [], p.notes && p.notes.middle || [], p.notes && p.notes.base || []).join(" ");
 }
 
+// ── 季節適配度 ──────────────────────────────────────────
+// 每款一組 [春, 夏, 秋, 冬]（0–1）。
+// 有 Fragrantica 社群投票的款用投票換算（狐狸、羚羊、公牛、黑澤）；
+// 其他依香調、香評與調性推估，並已考慮台灣夏天濕熱、重香易膩。
+const SEASON_PROFILE = {
+  "公鹿":[0.5,0.2,0.9,0.9], "狐狸":[0.99,0.71,0.79,0.52], "獵犬":[0.7,0.2,0.9,0.7],
+  "羚羊":[0.24,0.07,0.6,0.98], "公牛":[0.13,0.05,0.72,0.99], "犀牛":[0.5,0.35,0.9,0.9],
+  "英國梨與小蒼蘭":[0.9,0.7,0.9,0.35], "Pure":[0.9,0.9,0.5,0.2], "Savon":[0.9,0.9,0.5,0.2],
+  "島嶼青蕨":[0.9,0.7,0.5,0.2], "高山包種":[0.9,0.5,0.9,0.35], "凍頂烏龍":[0.35,0.2,0.9,0.9],
+  "冥府之路彼岸花":[0.5,0.35,0.9,0.9],
+  "租賃心臟":[0.2,0.05,0.9,0.9], "過度換氣":[0.9,0.7,0.7,0.35], "未付思緒":[0.9,0.9,0.5,0.2],
+  "雪盲症":[0.5,0.7,0.5,0.7], "妄聽症":[0.2,0.05,0.9,0.9], "失語症":[0.35,0.2,0.9,0.7],
+  "狂戀苦艾":[0.5,0.35,0.9,0.9], "一生之鹽":[0.9,0.9,0.5,0.2], "柑橘綠茶":[0.9,0.9,0.35,0.2],
+  "001 男性淡香精":[0.7,0.5,0.9,0.5], "奇蹟天光":[0.9,0.9,0.5,0.2], "鈴蘭":[0.9,0.7,0.35,0.2],
+  "SALT & WAVES 身體噴霧":[0.5,0.9,0.2,0.2], "白茶":[0.9,0.9,0.5,0.35], "No.39 Robe White":[0.9,0.7,0.5,0.35],
+  "黎深·霽雪來信":[0.5,0.35,0.9,0.7], "晶豔":[0.9,0.9,0.35,0.2], "玫瑰金漾 綻放喜悅":[0.9,0.5,0.5,0.35],
+  "Miss Dior 香氛":[0.9,0.5,0.5,0.35], "Mystery for Him":[0.5,0.35,0.9,0.7], "Green Sandalwood":[0.7,0.5,0.9,0.5],
+  "淘氣大野狼":[0.35,0.2,0.9,0.9], "黑澤":[0.49,0.21,1.0,0.87], "茶之外":[0.9,0.7,0.5,0.2],
+};
+const SEASON_INDEX = { spring: 0, summer: 1, autumn: 2, winter: 3 };
+const SEASON_MIN = 0.6;   // 適配度低於這個就不算適合該季
+
+// 沒有在上表的款（之後新增的香水），用香調推估。由上往下比對，先命中先算，越前面越精確。
+const NOTE_SEASON = [
+  [["白麝香","乾淨麝香"],[0.9,0.9,0.5,0.35]],
+  [["麝貓","動物","黑麝香"],[0.2,0.05,0.7,0.9]],
+  [["綠茶","白茶"],[0.9,0.9,0.5,0.2]],
+  [["包種","高山茶"],[0.9,0.5,0.9,0.35]],
+  [["凍頂","焙","紅茶"],[0.35,0.2,0.9,0.7]],
+  [["烏龍"],[0.7,0.5,0.7,0.4]],
+  [["茶"],[0.8,0.7,0.6,0.3]],
+  [["沒藥","安息香","勞丹","琥珀","樹脂"],[0.2,0.05,0.9,0.9]],
+  [["乳香","焚香"],[0.5,0.35,0.9,0.7]],
+  [["皮革","菸草","煙草","焦糖","榛果","栗","香草","可可","巧克力","咖啡","零陵香豆","威士忌","蘭姆","白蘭地"],[0.2,0.05,0.9,0.9]],
+  [["肉桂","丁香","荳蔻","胡椒","番紅花","孜然","肉豆蔻"],[0.4,0.3,0.9,0.8]],
+  [["薑"],[0.6,0.7,0.6,0.4]],
+  [["苦艾","八角","甘草"],[0.5,0.35,0.9,0.7]],
+  [["廣藿"],[0.3,0.2,0.9,0.8]],
+  [["苔"],[0.5,0.35,0.9,0.6]],
+  [["檀"],[0.5,0.35,0.9,0.9]],
+  [["香根草","岩蘭草","雪松","絲柏","杉","松"],[0.5,0.35,0.9,0.7]],
+  [["鹽","海","水生","海藻"],[0.5,0.9,0.35,0.2]],
+  [["無花果"],[0.5,0.7,0.9,0.35]],
+  [["鈴蘭","小蒼蘭","牡丹"],[0.9,0.5,0.35,0.2]],
+  [["玫瑰"],[0.9,0.5,0.7,0.5]],
+  [["鳶尾","紫羅蘭"],[0.8,0.5,0.7,0.5]],
+  [["茉莉","橙花","白花","梔子","晚香玉","依蘭","蘭"],[0.9,0.6,0.4,0.3]],
+  [["柑橘","佛手柑","檸檬","葡萄柚","萊姆","橘","柚","橙","金桔"],[0.8,0.9,0.4,0.2]],
+  [["綠葉","青草","蕨","薄荷","黃瓜","尤加利","羅勒","鼠尾草","薰衣草"],[0.9,0.8,0.4,0.2]],
+  [["梨","蘋果","桃","荔枝","莓","醋栗","瓜","鳳梨"],[0.9,0.7,0.6,0.3]],
+  [["蜜"],[0.4,0.2,0.8,0.8]],
+  [["龍涎"],[0.6,0.6,0.6,0.6]],
+  [["麝香"],[0.7,0.6,0.6,0.5]],
+  [["木"],[0.5,0.4,0.8,0.7]],
+];
+function noteSeason(note) {
+  for (const [kws, v] of NOTE_SEASON) if (kws.some((k) => note.indexOf(k) >= 0)) return v;
+  return null;
+}
+function inferSeason(p) {
+  const layers = [["top", 0.6], ["middle", 1.0], ["base", 0.9]];
+  const sum = [0, 0, 0, 0]; let wsum = 0;
+  for (const [layer, lw] of layers) {
+    const arr = (p.notes && p.notes[layer]) || [];
+    arr.forEach((n, i) => {
+      const v = noteSeason(String(n)); if (!v) return;
+      const w = lw / (1 + 0.3 * i);   // 同一層越前面越重；用加權平均，香調多不會多拿分
+      for (let k = 0; k < 4; k++) sum[k] += w * v[k];
+      wsum += w;
+    });
+  }
+  if (!wsum) return null;
+  const r = sum.map((x) => x / wsum);
+  if (r[3] > 0.7) r[1] *= 0.7;   // 偏冬的重香，台灣夏天再往下修
+  return r;
+}
+function seasonVector(p) {
+  const key = String(p.nameZh || "").replace(/（[^）]*）/g, "").trim();
+  return SEASON_PROFILE[key] || inferSeason(p);
+}
+
 // 今日日期字串（當地時區），用來判斷「同一天固定」
 function todayKey() {
   const d = new Date();
@@ -702,6 +783,7 @@ function runFilter() {
 
   const activeFacets = [];
   ["season","family","mood","occasion"].forEach((f) => ST.filters[f].forEach((k) => activeFacets.push({ facet: f, key: k })));
+  const seasonKeys = ST.filters.season.slice();
 
   const scored = ST.collection.map((p) => {
     const all = allNotesOf(p);
@@ -717,22 +799,40 @@ function runFilter() {
     }
     // 想避開的氣味
     if (!excluded) for (const av of avoidList) { if (av && all.indexOf(av) >= 0) { excluded = true; break; } }
-    activeFacets.forEach(({ facet, key }) => {
-      const opt = FACETS[facet].options.find((o) => o.key === key);
-      if (!opt) return;
-      const hit = opt.kw.filter((kw) => all.indexOf(kw) >= 0);
-      if (hit.length) { score += hit.length; reasons.push(opt.label); }
-    });
-    return { perfume: p, score, noteHits, reasons: [...new Set(reasons)], excluded };
+    // 季節：看這款的四季適配度，選多季取最高
+    let seasonFit = null;
+    if (seasonKeys.length) {
+      const v = seasonVector(p);
+      seasonFit = v ? Math.max(...seasonKeys.map((k) => v[SEASON_INDEX[k]])) : 0;
+      if (seasonFit < SEASON_MIN) excluded = true;
+      else {
+        const best = seasonKeys.reduce((a, k) => (v[SEASON_INDEX[k]] > v[SEASON_INDEX[a]] ? k : a), seasonKeys[0]);
+        const opt = FACETS.season.options.find((o) => o.key === best);
+        reasons.push(opt.label + " " + Math.round(seasonFit * 100) + "%");
+      }
+    }
+    // 香調／心情／場合：同一類裡任一命中即可，不同類之間都要符合
+    for (const facet of ["family", "mood", "occasion"]) {
+      const keys = ST.filters[facet]; if (!keys.length) continue;
+      let groupHit = 0;
+      keys.forEach((key) => {
+        const opt = FACETS[facet].options.find((o) => o.key === key);
+        if (!opt) return;
+        const hit = opt.kw.filter((kw) => all.indexOf(kw) >= 0);
+        if (hit.length) { groupHit += hit.length; reasons.push(opt.label); }
+      });
+      if (!groupHit) excluded = true;
+      score += groupHit;
+    }
+    return { perfume: p, score, seasonFit, noteHits, reasons: [...new Set(reasons)], excluded };
   });
 
   const hasScoring = activeFacets.length > 0;
   const hasAnyCondition = hasScoring || terms.length > 0 || avoidList.length > 0;
   let list = scored.filter((s) => !s.excluded);
-  if (hasScoring) list = list.filter((s) => s.score > 0);
-  list.sort((a, b) => (b.score - a.score) || (b.noteHits - a.noteHits));
-  // 有勾季節／香調／心情／場合才取前 6 名；只有搜尋或避開時列出全部符合的款
-  if (hasScoring) list = list.slice(0, 6);
+  // 排序：季節適配度 → 香調／心情／場合命中數 → 搜尋命中香調數 → 名稱。列出全部符合的款，不設上限。
+  list.sort((a, b) => ((b.seasonFit || 0) - (a.seasonFit || 0)) || (b.score - a.score) || (b.noteHits - a.noteHits) ||
+    String(a.perfume.nameZh || "").localeCompare(String(b.perfume.nameZh || ""), "zh-Hant"));
   ST.filterResult = { list, hasAnyCondition, hasScoring, avoidActive: avoidList.length > 0 };
   render();
 }
@@ -912,7 +1012,7 @@ function render() {
     '<div class="filter-btns"><button class="save-btn" id="run-filter" style="flex:1">推薦給我</button><button class="reset-btn" id="reset-filter">清除</button></div>' +
     resultHTML;
   const filterPanel =
-    '<div class="narrow panel"><div class="w-title">今天該擦哪一瓶？</div><div class="w-sub">只用搜尋會列出所有符合的款；挑了季節、香調、心情或場合，就從中推薦最適合的 6 款。（心情與場合由香調自動判斷，僅供參考）</div>' + filterBody + '</div>';
+    '<div class="narrow panel"><div class="w-title">今天該擦哪一瓶？</div><div class="w-sub">搜尋或挑選季節、香調、心情、場合，按「推薦給我」，列出收藏中所有符合的款，最適合的排在前面。季節依每款的四季適配度判斷。（心情與場合由香調自動判斷，僅供參考）</div>' + filterBody + '</div>';
 
   // ── 塔羅分頁 ──
   let tarotPanel = "";
