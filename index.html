@@ -730,8 +730,9 @@ function runFilter() {
   let list = scored.filter((s) => !s.excluded);
   if (hasScoring) list = list.filter((s) => s.score > 0);
   list.sort((a, b) => b.score - a.score);
-  list = list.slice(0, 6);
-  ST.filterResult = { list, hasAnyCondition, avoidActive: avoidList.length > 0 };
+  // 有推薦條件才取前 6 名；只有搜尋／避開時列出全部符合的款
+  if (hasScoring) list = list.slice(0, 6);
+  ST.filterResult = { list, hasAnyCondition, hasScoring, avoidActive: avoidList.length > 0 };
   render();
 }
 
@@ -897,7 +898,7 @@ function render() {
         const orig = p.name && p.name !== p.nameZh ? '<span class="rl-orig">' + esc(p.name) + '</span>' : "";
         return '<div class="rec-row"><div class="rl-rank">' + (i + 1) + '</div><div class="rl-body"><div class="rl-title">' + esc(p.nameZh) + ' ' + orig + '</div><div class="rl-brand">' + esc(p.brand || "—") + '</div>' + why + pyramidHTML(p.notes, true) + '</div></div>';
       }).join("");
-      resultHTML = '<div class="rec-list"><div class="rec-head"><span class="rec-tag">' + IC.sparkles() + ' 為你推薦</span><span class="rec-count">' + fr.list.length + ' 款</span></div>' + rows + '</div>';
+      resultHTML = '<div class="rec-list"><div class="rec-head"><span class="rec-tag">' + IC.sparkles() + (fr.hasScoring ? ' 為你推薦' : ' 搜尋結果') + '</span><span class="rec-count">' + fr.list.length + ' 款</span></div>' + rows + '</div>';
     }
   }
   const filterBody =
