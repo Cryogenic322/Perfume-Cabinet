@@ -936,41 +936,40 @@ function runFilter() {
     }
     // 想避開的氣味
     if (!excluded) for (const av of avoidList) { if (av && all.indexOf(av) >= 0) { excluded = true; break; } }
-    // 季節：看這款的四季適配度，選多季取最高
+    // 季節：看這款的四季適配度，選多季時每一季都要達標
     let seasonFit = null;
     if (seasonKeys.length) {
       const v = seasonVector(p);
-      seasonFit = v ? Math.max(...seasonKeys.map((k) => v[SEASON_INDEX[k]])) : 0;
+      seasonFit = v ? Math.min(...seasonKeys.map((k) => v[SEASON_INDEX[k]])) : 0;
       if (seasonFit < SEASON_MIN) excluded = true;
-      else {
-        const best = seasonKeys.reduce((a, k) => (v[SEASON_INDEX[k]] > v[SEASON_INDEX[a]] ? k : a), seasonKeys[0]);
-        const opt = FACETS.season.options.find((o) => o.key === best);
-        reasons.push(opt.label + " " + Math.round(seasonFit * 100) + "%");
-      }
+      else seasonKeys.forEach((k) => {
+        const opt = FACETS.season.options.find((o) => o.key === k);
+        reasons.push(opt.label + " " + Math.round(v[SEASON_INDEX[k]] * 100) + "%");
+      });
     }
     // 香調：比對香調關鍵字。心情／場合：依每款的網路香評標註（TAG_PROFILE），沒標註的新款才退回關鍵字。
-    // 同一類裡任一命中即可，不同類之間都要符合。
+    // 選了的每一個條件都要符合，選越多結果越少。
     for (const facet of ["family", "mood", "occasion"]) {
       const keys = ST.filters[facet]; if (!keys.length) continue;
-      let groupHit = 0;
+      let groupHit = 0; let miss = false;
       const tags = facet === "family" ? null : tagProfile(p);
       keys.forEach((key) => {
         const opt = FACETS[facet].options.find((o) => o.key === key);
         if (!opt) return;
         if (facet === "occasion" && key === "sleep") {
           const sv = sleepScore(p);
-          if (sv != null && sv >= SLEEP_MIN) { groupHit += 1; tagFit += sv * 3; reasons.push(opt.label); }
+          if (sv != null && sv >= SLEEP_MIN) { groupHit += 1; tagFit += sv * 3; reasons.push(opt.label); } else miss = true;
           return;
         }
         if (tags) {
           const r = tags[key] || 0;
-          if (r >= 2) { groupHit += 1; tagFit += r; reasons.push(opt.label); }
+          if (r >= 2) { groupHit += 1; tagFit += r; reasons.push(opt.label); } else miss = true;
           return;
         }
         const hit = opt.kw.filter((kw) => all.indexOf(kw) >= 0);
-        if (hit.length) { groupHit += hit.length; if (facet !== "family") tagFit += 2; reasons.push(opt.label); }
+        if (hit.length) { groupHit += hit.length; if (facet !== "family") tagFit += 2; reasons.push(opt.label); } else miss = true;
       });
-      if (!groupHit) excluded = true;
+      if (miss || !groupHit) excluded = true;
       score += groupHit;
     }
     return { perfume: p, score, seasonFit, tagFit, noteHits, reasons: [...new Set(reasons)], excluded };
