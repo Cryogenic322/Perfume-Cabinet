@@ -389,10 +389,10 @@ const FACETS = {
     options: [
       { key: "citrus", label: "柑橘", kw: ["柑橘","佛手柑","檸檬","葡萄柚","萊姆","橙","苦柚","金桔"] },
       { key: "floral", label: "花香", kw: ["玫瑰","茉莉","鳶尾","橙花","晚香玉","紫羅蘭","依蘭","牡丹","鈴蘭","花","蘭花"] },
-      { key: "woody", label: "木質", kw: ["檀香","雪松","木","癒創木","香杉","杉樹","廣藿香","岩蘭草","香根草"] },
+      { key: "woody", label: "木質", kw: ["檀香","雪松","木","癒創木","香杉","杉樹","冷杉","絲柏","廣藿香","岩蘭草","香根草"] },
       { key: "oriental", label: "東方辛香", kw: ["琥珀","香草","焚香","乳香","沒藥","肉桂","丁香","番紅花","小豆蔻","胡椒","龍涎香","東方","樹脂"] },
       { key: "fougere", label: "馥奇草本", kw: ["薰衣草","鼠尾草","羅勒","茴香","綠葉","青草","苦艾","艾草","尤加利","薄荷","茶"] },
-      { key: "leather", label: "皮革菸草", kw: ["皮革","菸草","煙草","焦油","煙燻","威士忌","龍舌蘭"] },
+      { key: "leather", label: "皮革菸草", kw: ["皮革","菸草","煙草","焦油","煙燻","威士忌","龍舌蘭","干邑","白蘭地"] },
       { key: "gourmand", label: "美食甜香", kw: ["巧克力","可可","咖啡","焦糖","香草莢","蜜","杏仁","椰子","太妃","榛果","栗子"] },
       { key: "aquatic", label: "水生綠意", kw: ["海洋","水生","海鹽","鹽","海藻","無花果","梨","青蘋果","黃瓜","綠"] },
     ],
@@ -462,13 +462,23 @@ const LIBRARY = [
   { nameZh:"淘氣大野狼", name:"Méchant Loup", brand:"L'Artisan Parfumeur", year:"1997", top:["甘草","胡椒"], middle:["榛果","栗子","榛木"], base:["癒創木","蜂蜜","雪松","沒藥","零陵香豆"], description:"小紅帽的森林。大野狼用烤榛果、甘草與蜂蜜的苦甜香氣誘惑，腳下是乾燥秋葉與潮濕木頭，木質辛香帶一點美食甜感。淡香水。", longevity:2, verified:true },
   { nameZh:"黑澤", name:"Encre Noire", brand:"Lalique", year:"2006", top:["絲柏","香根草"], middle:["波本香根草","海地香根草"], base:["喀什米爾木","白麝香"], description:"又名墨粹。三種香根草疊出墨色木質，絲柏帶來潮濕泥土與青苔感，收於喀什米爾木與白麝香。瓶身取自 René Lalique 1913 年的墨水瓶。調香師 Nathalie Lorson。淡香水。", longevity:3, verified:true },
   { nameZh:"茶之外", name:"Another Tea", brand:"MITH", year:"2022", top:["佛手柑"], middle:["烏龍茶","茉莉"], base:["麝香","檀香"], description:"佛手柑開場，接著是純淨舒緩的烏龍茶香，夾著茉莉的溫柔甜感，收於柔和的麝香檀木。", longevity:2, verified:true },
+  { nameZh:"黑澤運動版", name:"Encre Noire Sport", brand:"Lalique", year:"2013", top:["葡萄柚","佛手柑","肉豆蔻"], middle:["絲柏","薰衣草","水生調"], base:["香根草","喀什米爾木","麝香"], description:"葡萄柚與佛手柑的明亮柑橘開場，接著絲柏、薰衣草與水生調帶出清涼感，最後落在香根草與喀什米爾木。比原版黑澤輕盈清新，潮濕煙燻感淡很多。調香師 Nathalie Lorson。淡香水。", longevity:2, verified:true },
+  { nameZh:"黑胡桃木", name:"Black Walnut", brand:"Banana Republic", year:"2006", top:["小荳蔻","黑胡椒","干邑白蘭地"], middle:["鼠尾草","肉豆蔻","菸草葉"], base:["維吉尼亞雪松","麝香"], description:"干邑酒香開場，轉入微甜的菸草，最後以乾淨的雪松木質收尾，溫暖成熟帶點酒感。其實沒有胡桃木香調。2007 年 FiFi 獎得主，調香師 Harry Frémont。淡香水。", longevity:2, verified:true },
+  { nameZh:"紳藍時尚", name:"Bois de Vétiver", brand:"KARL LAGERFELD", year:"2017", top:["血橙","粉紅葡萄柚","薄荷"], middle:["天竺葵","玫瑰","香根草"], base:["降龍涎香醚","麝香","廣藿香"], description:"血橙與葡萄柚的明亮果香配上薄荷的涼意，中段帶一點天竺葵與玫瑰，底部是乾淨的香根草木質。比傳統香根草香水輕盈，偏日間。調香師 Christophe Raynaud。淡香水。", longevity:2, verified:true },
+  { nameZh:"慵懶早晨", name:"Lazy Sunday Morning", brand:"Maison Margiela", year:"2013", top:["醛","鈴蘭","梨"], middle:["玫瑰","鳶尾","橙花"], base:["白麝香","麝香葵","印尼廣藿香葉"], description:"剛洗好的純白床單，醛香與麝香交織的乾淨慵懶晨光感。淡香水。", longevity:1, verified:true },
+  { nameZh:"傾城之魅運動", name:"Allure Homme Sport", brand:"Chanel", year:"2004", top:["柳橙","橘子","海洋調","醛"], middle:["雪松","胡椒","橙花"], base:["零陵香豆","白麝香","香根草","琥珀"], description:"柑橘、醛與海洋調開場，清爽帶微鹹水感，中段是雪松與胡椒的乾淨木質辛香，後段白麝香與零陵香豆柔和收尾。經典的運動型夏日香。調香師 Jacques Polge。淡香水。", longevity:2, verified:true },
+  { nameZh:"甦醒森林", name:"Acqua Colonia Intense Wakening Woods of Scandinavia", brand:"4711", year:"2019", top:["佛手柑","芫荽","粉紅胡椒"], middle:["玫瑰","桂花","茉莉"], base:["冷杉原精","乳香","廣藿香"], description:"冷杉帶出北歐森林晨間的清新綠意，隨後轉為乳香與廣藿香的木質煙感。花香存在感很低，整體中性、清爽乾淨。調香師 Geza Schön。古龍水。", longevity:1, verified:true },
+  { nameZh:"壁爐火光", name:"Replica By the Fireplace", brand:"Maison Margiela", year:"2015", top:["粉紅胡椒","橙花","丁香"], middle:["栗子","癒創木","刺柏焦油"], base:["香草","秘魯香膏","喀什米爾木"], description:"烤栗子香為核心，丁香與粉紅胡椒的辛香，癒創木與刺柏焦油的柴火煙燻感，最後收在香草與秘魯香膏的暖甜，像冬天坐在壁爐旁。淡香水。", longevity:2, verified:true },
+  { nameZh:"北國雪松精粹", name:"Atelier des Fleurs Cedrus Intense", brand:"Chloé", year:"2025", top:["佛手柑","小豆蔻"], middle:["皮革","玫瑰"], base:["檀香","雪松","香根草","琥珀"], description:"北國雪松的加強版。保留佛手柑、小豆蔻與雪松、香根草、檀香，拿掉粉紅胡椒與麝香，加入皮革玫瑰與琥珀，比原版更暗、更煙燻、更有皮革感。調香師 Quentin Bisch、Louise Turner。淡香精。", longevity:3, verified:true },
+  { nameZh:"Club de Nuit Sillage", name:"Club de Nuit Sillage", brand:"Armaf", year:"2020", top:["佛手柑","檸檬","萊姆","黑醋栗","薑","紫羅蘭葉"], middle:["玫瑰","茉莉","鳶尾"], base:["麝香","降龍涎香醚","雪松","檀香"], description:"清新柑橘開場，黑醋栗與紫羅蘭葉帶出微酸的綠感，後段是乾淨麝香與木質。公認是 Creed 銀色山泉的平替，日間清爽型。淡香精。", longevity:3, verified:true },
+  { nameZh:"玫瑰之水", name:"Eau Rose", brand:"Diptyque", year:"2012", top:["佛手柑","黑醋栗","荔枝"], middle:["茉莉","天竺葵","玫瑰"], base:["麝香","維吉尼亞雪松","白蜂蜜"], description:"晨露玫瑰花瓣的淡雅清甜，荔枝的俏皮多汁，從清晨到夜晚的玫瑰漫步。淡香水。", longevity:1, verified:true },
 ];
 
 // 已移出收藏的款（2026-11-03 更新）。在這之前存在裝置上的同名項目，開啟時會自動清掉；
 // 之後若你自己再手動新增同名香水，不受影響。
 const RETIRED_AT = 1793801158033;
-const RETIRED_ZH = ["廣藿之匣","盤羊","龍","梵音藏心","肌膚之華","慵懶早晨","純粹繆思","別樣13","檀香 33","檀道","布列塔尼的空氣","北國雪松","熾","熄燈禮拜","阿提密西亞","希臘無花果","無極烏龍","醉心檸香","一生之水（男）","N°5 低調奢華版","金木犀19","像你這樣的人","冥府之路","玫瑰之水","米拉塞蒂","木蘭詩語","樹果19","赤霞橘光","艾底希思","牧羊少年","月亮女神","公雞","玫瑰追憶","泡泡浴"];
-const RETIRED_EN = ["Empressa","The World According to Arthur","The Inimitable Mr. Penhaligon","Another 13","Santal 33","Hwyl","Cedrus (Atelier des Fleurs)","Lazy Sunday Morning","Miraceti","Pure Musc For Her","Tam Dao","Philosykos","Passage d'Enfer","You or Someone Like You","Fleur de Peau","Artemisia","Eidesis","Magnolia Alba","Un Air de Bretagne","Tenebrae 26","Dzongkha","L'Eau d'Issey Pour Homme","Osmanthus 19","Baie 19","Orange Sanguine","Oolang Infini","Cédrat Enivrant","Eau Rose","N°5 Eau Première","Luna","Monsieur Beauregard","Mémoire de Roses","Bubble Bath"];
+const RETIRED_ZH = ["廣藿之匣","盤羊","龍","梵音藏心","肌膚之華","純粹繆思","別樣13","檀香 33","檀道","布列塔尼的空氣","北國雪松","熾","熄燈禮拜","阿提密西亞","希臘無花果","無極烏龍","醉心檸香","一生之水（男）","N°5 低調奢華版","金木犀19","像你這樣的人","冥府之路","米拉塞蒂","木蘭詩語","樹果19","赤霞橘光","艾底希思","牧羊少年","月亮女神","公雞","玫瑰追憶","泡泡浴"];
+const RETIRED_EN = ["Empressa","The World According to Arthur","The Inimitable Mr. Penhaligon","Another 13","Santal 33","Hwyl","Cedrus (Atelier des Fleurs)","Miraceti","Pure Musc For Her","Tam Dao","Philosykos","Passage d'Enfer","You or Someone Like You","Fleur de Peau","Artemisia","Eidesis","Magnolia Alba","Un Air de Bretagne","Tenebrae 26","Dzongkha","L'Eau d'Issey Pour Homme","Osmanthus 19","Baie 19","Orange Sanguine","Oolang Infini","Cédrat Enivrant","N°5 Eau Première","Luna","Monsieur Beauregard","Mémoire de Roses","Bubble Bath"];
 
 // ── 持久儲存：IndexedDB ──────────────────────────────
 const DB_NAME = "perfume-cabinet", STORE = "perfumes";
@@ -547,6 +557,10 @@ const SEASON_PROFILE = {
   "黎深·霽雪來信":[0.5,0.35,0.9,0.7], "晶豔":[0.9,0.9,0.35,0.2], "玫瑰金漾 綻放喜悅":[0.9,0.5,0.5,0.35],
   "Miss Dior 香氛":[0.9,0.5,0.5,0.35], "Mystery for Him":[0.5,0.35,0.9,0.7], "Green Sandalwood":[0.7,0.5,0.9,0.5],
   "淘氣大野狼":[0.35,0.2,0.9,0.9], "黑澤":[0.49,0.21,1.0,0.87], "茶之外":[0.9,0.7,0.5,0.2],
+  "黑澤運動版":[0.9, 0.7, 0.7, 0.3], "黑胡桃木":[0.5, 0.2, 0.9, 0.85], "紳藍時尚":[0.8, 0.75, 0.6, 0.25],
+  "慵懶早晨":[0.97, 0.66, 0.33, 0.2], "傾城之魅運動":[0.85, 0.9, 0.45, 0.2], "甦醒森林":[0.7, 0.55, 0.9, 0.7],
+  "壁爐火光":[0.11, 0.03, 0.77, 0.99], "北國雪松精粹":[0.6, 0.3, 0.9, 0.7], "Club de Nuit Sillage":[0.94, 0.98, 0.51, 0.19],
+  "玫瑰之水":[0.9, 0.7, 0.5, 0.2],
 };
 const SEASON_INDEX = { spring: 0, summer: 1, autumn: 2, winter: 3 };
 const SEASON_MIN = 0.6;   // 適配度低於這個就不算適合該季
