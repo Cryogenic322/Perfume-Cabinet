@@ -415,6 +415,7 @@ const FACETS = {
       { key: "home", label: "居家放鬆", kw: ["焚香","檀香","茶","薰衣草","木","香草","乳香"] },
       { key: "formal", label: "正式場合", kw: ["皮革","鳶尾","木","琥珀","檀香","乳香","菸草"] },
       { key: "summer", label: "夏日外出", kw: ["柑橘","海鹽","水生","無花果","綠葉","薄荷","橙花","茶"] },
+      { key: "sleep", label: "睡前・侍寢", kw: [] },
     ],
   },
 };
@@ -624,6 +625,68 @@ function seasonVector(p) {
   return SEASON_PROFILE[key] || inferSeason(p);
 }
 
+// ── 睡前／侍寢香適合度 ──────────────────────────────────
+// 0–1。有實際討論的款依社群心得，其餘依香調通則推估（中後調為主，薄荷、樟腦、焦油、孜然等強刺激扣分）。
+const SLEEP_PROFILE = {
+  "慵懶早晨":0.9, "冥府之路彼岸花":0.9,
+  "高山包種":0.8, "Savon":0.8, "No.39 Robe White":0.8, "Green Sandalwood":0.8, "茶之外":0.8,
+  "公鹿":0.7, "島嶼青蕨":0.7, "001 男性淡香精":0.7, "白茶":0.7, "黑澤":0.7,
+  "狐狸":0.6, "英國梨與小蒼蘭":0.6, "Pure":0.6, "凍頂烏龍":0.6, "柑橘綠茶":0.6, "奇蹟天光":0.6, "鈴蘭":0.6,
+  "SALT & WAVES 身體噴霧":0.6, "Miss Dior 香氛":0.6, "淘氣大野狼":0.6, "黑澤運動版":0.6, "壁爐火光":0.6, "玫瑰之水":0.6,
+  "未付思緒":0.5, "狂戀苦艾":0.5, "一生之鹽":0.5, "玫瑰金漾 綻放喜悅":0.5, "北國雪松精粹":0.5,
+  "獵犬":0.4, "羚羊":0.4, "犀牛":0.4, "黎深·霽雪來信":0.4, "晶豔":0.4, "傾城之魅運動":0.4, "甦醒森林":0.4,
+  "Mystery for Him":0.3, "黑胡桃木":0.3, "紳藍時尚":0.3, "Club de Nuit Sillage":0.3,
+  "租賃心臟":0.2, "過度換氣":0.2, "雪盲症":0.2, "妄聽症":0.2, "失語症":0.2,
+  "公牛":0.1,
+};
+const SLEEP_MIN = 0.7;   // 達到這個分數才列入「睡前・侍寢」
+
+// 不在上表的款（之後新增的香水）依香調自動推估
+const SLEEP_NOTE_WEIGHTS = {
+  "薰衣草":0.3, "洋甘菊":0.3, "檀香":0.25, "檀木":0.25, "雪松":0.2, "杉":0.15,
+  "白麝香":0.25, "麝香":0.2, "喀什米爾":0.2, "安息香":0.2,
+  "鳶尾":0.15, "棉花":0.15, "棉":0.1, "茶":0.15, "零陵香豆":0.15, "香草":0.1,
+  "乳香":0.1, "焚香":0.05, "琥珀":0.05, "香根草":0.05, "麝香葵":0.15,
+  "依蘭":0.1, "橙花":0.05, "皂":0.15, "紫羅蘭":0.05, "蜂蜜":0.05, "癒創木":0.05, "秘魯香膏":0.1, "蘆薈木":0.05,
+  "黑胡椒":-0.2, "粉紅胡椒":-0.1, "紅胡椒":-0.1, "胡椒":-0.15, "辣椒":-0.25,
+  "丁香":-0.15, "八角":-0.15, "肉豆蔻":-0.05, "荳蔻":-0.05, "豆蔻":-0.05, "薑":-0.05,
+  "皮革":-0.2, "菸草":-0.15, "煙草":-0.15, "威士忌":-0.2, "白蘭地":-0.15, "干邑":-0.15,
+  "琴酒":-0.15, "杜松":-0.1, "清酒":-0.1, "醛":-0.15,
+  "檸檬":-0.1, "葡萄柚":-0.1, "萊姆":-0.1, "血橙":-0.1, "柑橘":-0.05,
+  "焦糖":-0.15, "巧克力":-0.15, "鳳梨":-0.15, "紅莓":-0.1, "迷迭香":-0.2,
+  "廣藿香":-0.05, "降龍涎香醚":-0.1, "海洋":-0.05, "水生":-0.05, "鹽":-0.05,
+  "薄荷":-0.35, "尤加利":-0.35, "樟腦":-0.4, "冰片":-0.4, "孜然":-0.35,
+  "焦油":-0.4, "煙燻":-0.3, "煙灰":-0.3, "麝貓":-0.35, "海狸":-0.35,
+};
+function sleepNoteValue(note) {
+  let hit = null;   // 取最長命中，避免「胡椒」「黑胡椒」重複
+  for (const k in SLEEP_NOTE_WEIGHTS) if (note.indexOf(k) >= 0 && (!hit || k.length > hit.length)) hit = k;
+  return hit ? SLEEP_NOTE_WEIGHTS[hit] : 0;
+}
+function inferSleep(p) {
+  const LW = { top: 0.2, middle: 0.35, base: 0.45 };
+  const layers = ["top", "middle", "base"].filter((l) => ((p.notes && p.notes[l]) || []).length);
+  if (!layers.length) return null;
+  const wsum = layers.reduce((a, l) => a + LW[l], 0);
+  let score = 0.5, strongTop = 0, strongLate = 0;
+  for (const l of layers) {
+    let sum = 0;
+    for (const n of p.notes[l]) {
+      const v = sleepNoteValue(String(n)); sum += v;
+      if (v <= -0.3) { if (l === "top") strongTop++; else strongLate++; }
+    }
+    score += Math.max(-0.5, Math.min(0.5, sum)) * (LW[l] / wsum);
+  }
+  if (strongTop) score -= 0.1;
+  if (strongLate) score = Math.min(score, 0.3);
+  if (strongTop + strongLate >= 2) score = Math.min(score, 0.2);
+  return Math.round(Math.max(0.05, Math.min(0.95, score)) * 20) / 20;
+}
+function sleepScore(p) {
+  const key = String(p.nameZh || "").replace(/（[^）]*）/g, "").trim();
+  return (key in SLEEP_PROFILE) ? SLEEP_PROFILE[key] : inferSleep(p);
+}
+
 // 今日日期字串（當地時區），用來判斷「同一天固定」
 function todayKey() {
   const d = new Date();
@@ -801,7 +864,7 @@ function runFilter() {
 
   const scored = ST.collection.map((p) => {
     const all = allNotesOf(p);
-    let score = 0; const reasons = []; let excluded = false; let noteHits = 0;
+    let score = 0; const reasons = []; let excluded = false; let noteHits = 0; let sleepFit = null;
     // 搜尋：每個關鍵字都要出現在中英文名、品牌、香調或描述裡（硬性條件）
     if (terms.length) {
       const hay = ((p.nameZh||"") + " " + (p.name||"") + " " + (p.brand||"") + " " + all + " " + (p.description||"")).toLowerCase();
@@ -832,20 +895,25 @@ function runFilter() {
       keys.forEach((key) => {
         const opt = FACETS[facet].options.find((o) => o.key === key);
         if (!opt) return;
+        if (facet === "occasion" && key === "sleep") {
+          const sv = sleepScore(p);
+          if (sv != null && sv >= SLEEP_MIN) { groupHit += 1; sleepFit = sv; reasons.push("🌙 睡前 " + Math.round(sv * 100) + "%"); }
+          return;
+        }
         const hit = opt.kw.filter((kw) => all.indexOf(kw) >= 0);
         if (hit.length) { groupHit += hit.length; reasons.push(opt.label); }
       });
       if (!groupHit) excluded = true;
       score += groupHit;
     }
-    return { perfume: p, score, seasonFit, noteHits, reasons: [...new Set(reasons)], excluded };
+    return { perfume: p, score, seasonFit, sleepFit, noteHits, reasons: [...new Set(reasons)], excluded };
   });
 
   const hasScoring = activeFacets.length > 0;
   const hasAnyCondition = hasScoring || terms.length > 0 || avoidList.length > 0;
   let list = scored.filter((s) => !s.excluded);
   // 排序：季節適配度 → 香調／心情／場合命中數 → 搜尋命中香調數 → 名稱。列出全部符合的款，不設上限。
-  list.sort((a, b) => ((b.seasonFit || 0) - (a.seasonFit || 0)) || (b.score - a.score) || (b.noteHits - a.noteHits) ||
+  list.sort((a, b) => ((b.seasonFit || 0) - (a.seasonFit || 0)) || ((b.sleepFit || 0) - (a.sleepFit || 0)) || (b.score - a.score) || (b.noteHits - a.noteHits) ||
     String(a.perfume.nameZh || "").localeCompare(String(b.perfume.nameZh || ""), "zh-Hant"));
   ST.filterResult = { list, hasAnyCondition, hasScoring, avoidActive: avoidList.length > 0 };
   render();
