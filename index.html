@@ -625,8 +625,22 @@ function seasonVector(p) {
   return SEASON_PROFILE[key] || inferSeason(p);
 }
 
+// ── 心情／場合標註 ──────────────────────────────────────
+// 每款依網路香評與社群心得標註 0–3（0 不適合、1 勉強、2 適合、3 最典型）。2 以上才列入，3 排在 2 前面。
+// 欄位順序：[清新提神, 沉靜療癒, 溫暖包覆, 性感神秘, 優雅乾淨, 日常上班, 約會, 居家放鬆, 正式場合, 夏日外出]
+const TAG_KEYS = ["fresh","calm","warm","sensual","clean","work","date","home","formal","summer"];
+const TAG_PROFILE = {
+/*TAG_PROFILE_DATA*/
+};
+function tagProfile(p) {
+  const key = String(p.nameZh || "").replace(/（[^）]*）/g, "").trim();
+  const row = TAG_PROFILE[key]; if (!row) return null;
+  const o = {}; TAG_KEYS.forEach((k, i) => { o[k] = row[i]; });
+  return o;
+}
+
 // ── 睡前／侍寢香適合度 ──────────────────────────────────
-// 0–1。有實際討論的款依社群心得，其餘依香調通則推估（中後調為主，薄荷、樟腦、焦油、孜然等強刺激扣分）。
+// 0–1，畫面上不顯示數字。有實際討論的款依社群心得，其餘依香調通則推估（中後調為主，薄荷、樟腦、焦油、孜然等強刺激扣分）。
 const SLEEP_PROFILE = {
   "慵懶早晨":0.9, "冥府之路彼岸花":0.9,
   "高山包種":0.8, "Savon":0.8, "No.39 Robe White":0.8, "Green Sandalwood":0.8, "茶之外":0.8,
@@ -864,7 +878,7 @@ function runFilter() {
 
   const scored = ST.collection.map((p) => {
     const all = allNotesOf(p);
-    let score = 0; const reasons = []; let excluded = false; let noteHits = 0; let sleepFit = null;
+    let score = 0; const reasons = []; let excluded = false; let noteHits = 0; let tagFit = 0;
     // 搜尋：每個關鍵字都要出現在中英文名、品牌、香調或描述裡（硬性條件）
     if (terms.length) {
       const hay = ((p.nameZh||"") + " " + (p.name||"") + " " + (p.brand||"") + " " + all + " " + (p.description||"")).toLowerCase();
@@ -888,32 +902,39 @@ function runFilter() {
         reasons.push(opt.label + " " + Math.round(seasonFit * 100) + "%");
       }
     }
-    // 香調／心情／場合：同一類裡任一命中即可，不同類之間都要符合
+    // 香調：比對香調關鍵字。心情／場合：依每款的網路香評標註（TAG_PROFILE），沒標註的新款才退回關鍵字。
+    // 同一類裡任一命中即可，不同類之間都要符合。
     for (const facet of ["family", "mood", "occasion"]) {
       const keys = ST.filters[facet]; if (!keys.length) continue;
       let groupHit = 0;
+      const tags = facet === "family" ? null : tagProfile(p);
       keys.forEach((key) => {
         const opt = FACETS[facet].options.find((o) => o.key === key);
         if (!opt) return;
         if (facet === "occasion" && key === "sleep") {
           const sv = sleepScore(p);
-          if (sv != null && sv >= SLEEP_MIN) { groupHit += 1; sleepFit = sv; reasons.push("🌙 睡前 " + Math.round(sv * 100) + "%"); }
+          if (sv != null && sv >= SLEEP_MIN) { groupHit += 1; tagFit += sv * 3; reasons.push(opt.label); }
+          return;
+        }
+        if (tags) {
+          const r = tags[key] || 0;
+          if (r >= 2) { groupHit += 1; tagFit += r; reasons.push(opt.label); }
           return;
         }
         const hit = opt.kw.filter((kw) => all.indexOf(kw) >= 0);
-        if (hit.length) { groupHit += hit.length; reasons.push(opt.label); }
+        if (hit.length) { groupHit += hit.length; if (facet !== "family") tagFit += 2; reasons.push(opt.label); }
       });
       if (!groupHit) excluded = true;
       score += groupHit;
     }
-    return { perfume: p, score, seasonFit, sleepFit, noteHits, reasons: [...new Set(reasons)], excluded };
+    return { perfume: p, score, seasonFit, tagFit, noteHits, reasons: [...new Set(reasons)], excluded };
   });
 
   const hasScoring = activeFacets.length > 0;
   const hasAnyCondition = hasScoring || terms.length > 0 || avoidList.length > 0;
   let list = scored.filter((s) => !s.excluded);
   // 排序：季節適配度 → 香調／心情／場合命中數 → 搜尋命中香調數 → 名稱。列出全部符合的款，不設上限。
-  list.sort((a, b) => ((b.seasonFit || 0) - (a.seasonFit || 0)) || ((b.sleepFit || 0) - (a.sleepFit || 0)) || (b.score - a.score) || (b.noteHits - a.noteHits) ||
+  list.sort((a, b) => ((b.seasonFit || 0) - (a.seasonFit || 0)) || (b.tagFit - a.tagFit) || (b.score - a.score) || (b.noteHits - a.noteHits) ||
     String(a.perfume.nameZh || "").localeCompare(String(b.perfume.nameZh || ""), "zh-Hant"));
   ST.filterResult = { list, hasAnyCondition, hasScoring, avoidActive: avoidList.length > 0 };
   render();
