@@ -192,6 +192,11 @@
 
   .tab-nav { display: flex; gap: 8px; margin-top: 18px; }
   .tab-btn { flex: 1; border: 1px solid var(--border-2); background: var(--glass-2); color: var(--muted); font-size: 14px; font-weight: 600; letter-spacing: 0.3px; padding: 13px; border-radius: 12px; cursor: pointer; transition: all .18s; }
+  .lucky-nav { display: flex; gap: 6px; justify-content: center; margin: 14px 0 4px; }
+  .lucky-btn { border: 1px solid var(--border-2); background: transparent; color: var(--muted); font-size: 13px; font-weight: 600; padding: 7px 18px; border-radius: 999px; cursor: pointer; transition: all .18s; font-family: inherit; }
+  .lucky-btn.on { border-color: #C9A85C; color: var(--gold-text); background: rgba(201,168,92,0.10); }
+  .astro-glyph { font-size: 46px; line-height: 1; color: #C9A85C; margin-bottom: 6px; }
+  .astro-meta { font-size: 12px; color: var(--muted); margin-top: 6px; line-height: 1.7; }
   .tab-btn:hover { border-color: rgba(201,168,92,0.4); color: var(--text-chip); }
   .tab-btn.on { border-color: rgba(201,168,92,0.65); background: linear-gradient(180deg, rgba(201,168,92,0.16), rgba(201,168,92,0.08)); color: var(--gold-text); box-shadow: inset 0 1px 0 rgba(255,244,214,0.12); }
 
@@ -532,6 +537,8 @@ const ST = {
   tab: "filter",          // "filter" | "tarot"
   tarot: null,            // { card, perfume, oracle, flipped }
   tarotLoading: false,
+  luckyMode: "tarot",     // "tarot" | "astro"
+  astro: null,            // 今日星象與幸運香水
 };
 function emptyForm() { return { name:"", nameZh:"", brand:"", year:"", top:"", middle:"", base:"", description:"" }; }
 
@@ -762,6 +769,86 @@ function seededPick(arr, seedStr) {
   for (let i = 0; i < seedStr.length; i++) { h = (h * 31 + seedStr.charCodeAt(i)) >>> 0; }
   return arr[h % arr.length];
 }
+// ── 星座運勢：依實際星象（當天月亮所在星座、月相）計算 ─────────────
+const ZODIAC = [
+  { zh: "牡羊座", glyph: "♈", el: "fire" }, { zh: "金牛座", glyph: "♉", el: "earth" }, { zh: "雙子座", glyph: "♊", el: "air" },
+  { zh: "巨蟹座", glyph: "♋", el: "water" }, { zh: "獅子座", glyph: "♌", el: "fire" }, { zh: "處女座", glyph: "♍", el: "earth" },
+  { zh: "天秤座", glyph: "♎", el: "air" }, { zh: "天蠍座", glyph: "♏", el: "water" }, { zh: "射手座", glyph: "♐", el: "fire" },
+  { zh: "摩羯座", glyph: "♑", el: "earth" }, { zh: "水瓶座", glyph: "♒", el: "air" }, { zh: "雙魚座", glyph: "♓", el: "water" },
+];
+const MY_SIGN = 0;   // 使用者的太陽星座：牡羊座（固定）
+// 月亮與太陽的黃經（Meeus 簡化式，誤差約 0.2°，判斷星座足夠）
+function astroPositions(date) {
+  const jd = date.getTime() / 86400000 + 2440587.5;
+  const T = (jd - 2451545.0) / 36525;
+  const R = Math.PI / 180, n = (x) => ((x % 360) + 360) % 360;
+  const Lp = 218.3164477 + 481267.88123421 * T, D = 297.8501921 + 445267.1114034 * T;
+  const M = 357.5291092 + 35999.0502909 * T, Mp = 134.9633964 + 477198.8675055 * T, F = 93.2720950 + 483202.0175233 * T;
+  const sn = (x) => Math.sin(x * R);
+  const moon = n(Lp + 6.288774 * sn(Mp) + 1.274027 * sn(2*D - Mp) + 0.658314 * sn(2*D) + 0.213618 * sn(2*Mp) - 0.185116 * sn(M)
+    - 0.114332 * sn(2*F) + 0.058793 * sn(2*D - 2*Mp) + 0.057066 * sn(2*D - M - Mp) + 0.053322 * sn(2*D + Mp)
+    + 0.045758 * sn(2*D - M) - 0.040923 * sn(M - Mp) - 0.034720 * sn(D) - 0.030383 * sn(M + Mp));
+  const sun = n(280.46646 + 36000.76983 * T + 1.914602 * sn(M) + 0.019993 * sn(2*M));
+  return { moon, sun, elong: n(moon - sun) };
+}
+function moonPhaseName(elong) {
+  const names = ["新月","眉月","上弦月","盈凸月","滿月","虧凸月","下弦月","殘月"];
+  return names[Math.floor(((elong + 22.5) % 360) / 45)];
+}
+// 月亮星座與本命太陽星座的關係（以星座間隔判斷相位）
+function astroAspect(moonIdx) {
+  const d = ((moonIdx - MY_SIGN) % 12 + 12) % 12;
+  if (d === 0) return { name: "合相", text: "月亮回到你的星座，情緒和直覺都特別貼近自己，適合開始新的事。" };
+  if (d === 6) return { name: "對分相", text: "月亮走到你的對宮，人際關係是今天的主題，留意自己與他人需要之間的平衡。" };
+  if (d === 4 || d === 8) return { name: "三分相", text: "月亮與你同屬火象，能量順暢，做什麼都比較得心應手。" };
+  if (d === 2 || d === 10) return { name: "六分相", text: "氣氛輕鬆，容易得到幫助，適合交流與合作。" };
+  if (d === 3 || d === 9) return { name: "四分相", text: "內外有些拉扯，別急著做決定，把壓力化成行動。" };
+  if (d === 1 || d === 11) return { name: "相鄰", text: "今天的節奏和你習慣的不太一樣，放慢一步、多觀察。" };
+  return { name: "不合相", text: "能量不太對頻，容易覺得卡，先照顧好作息與步調。" };
+}
+function ensureAstro() {
+  if (ST.astro && ST.astro.day === todayKey()) return;
+  const now = new Date(); const noon = new Date(now.getFullYear(), now.getMonth(), now.getDate(), 12, 0, 0);
+  const pos = astroPositions(noon);
+  const moonIdx = Math.floor(pos.moon / 30);
+  const saved = (ST.astroSaved && ST.astroSaved.day === todayKey()) ? ST.astroSaved : null;
+  let perfume = saved && saved.perfumeId ? ST.collection.find((c) => c.id === saved.perfumeId) : null;
+  if (!perfume) perfume = perfumeForElement(ZODIAC[moonIdx].el, "astro" + todayKey() + moonIdx);
+  ST.astro = { day: todayKey(), moonIdx, phase: moonPhaseName(pos.elong), aspect: astroAspect(moonIdx), perfume,
+    fortune: saved ? saved.fortune : "", aiSource: !!(saved && saved.fortune), aiTried: !!(saved && saved.fortune) };
+  generateAstroFortune();
+}
+async function generateAstroFortune() {
+  const a = ST.astro;
+  if (!a || a.aiTried) return;
+  a.aiTried = true;
+  if (typeof puter === "undefined" || !puter.ai || !puter.ai.chat) return;
+  a.aiLoading = true; render();
+  const p = a.perfume; const mz = ZODIAC[a.moonIdx];
+  const perfumeDesc = p ? (p.nameZh + "（" + (p.brand || "") + "），香調有" + allNotesOf(p)) : "（暫無對應香水）";
+  const prompt = "你是一位溫柔而有洞察力的占星師，正在為一位香水愛好者解讀今日運勢。\n" +
+    "對方的太陽星座：" + ZODIAC[MY_SIGN].zh + "\n" +
+    "今日實際星象：月亮在" + mz.zh + "（" + TAROT_ELEMENTS[mz.el].zh + "象），月相是" + a.phase + "\n" +
+    "月亮與對方太陽星座的關係：" + a.aspect.name + "。" + a.aspect.text + "\n" +
+    "依今日月亮元素挑選的香水：" + perfumeDesc + "\n\n" +
+    "請用繁體中文，以占星師對來訪者說話的口吻，寫一段 80～120 字的今日運勢。內容要根據上面的星象，不要編造其他行星位置。把星象的訊息和這款香水的氣味意象自然連結，給出今天的指引。只回傳那段話本身，不要前言、標題或引號。";
+  try {
+    const resp = await puter.ai.chat(prompt, { model: "gpt-5.4-nano", temperature: 0.9, max_tokens: 300 });
+    let text = "";
+    if (typeof resp === "string") text = resp;
+    else if (resp && resp.message && resp.message.content) text = resp.message.content;
+    else if (resp && resp.text) text = resp.text;
+    text = String(text).trim();
+    if (text && ST.astro === a) {
+      a.fortune = text; a.aiSource = true;
+      ST.astroSaved = { day: a.day, fortune: text, perfumeId: p ? p.id : null };
+      try { await store.put({ id: "astro_today", _marker: true, value: ST.astroSaved }); } catch (e) {}
+    }
+  } catch (e) { /* AI 失敗 → 保留依相位寫好的說明 */ }
+  a.aiLoading = false;
+  render();
+}
+
 // 依牌的元素，從收藏挑一款搭的香水（在所有命中的款中加權隨機，避免每次都同一款）
 function perfumeForElement(element, seedStr) {
   if (!ST.collection.length) return null;
@@ -1200,7 +1287,31 @@ function render() {
         fortune + pf + src +
         '<button class="reset-btn" id="redraw" style="margin-top:16px">重新抽一張</button></div>';
     }
-    tarotPanel = '<div class="narrow panel"><div class="w-title">本日幸運香水</div><div class="w-sub">抽一張塔羅牌，由牌的元素為你牽引出今日最適合的香水。同一天抽到的牌固定，明日換新。</div>' + body + '</div>';
+    const luckyNav = '<div class="lucky-nav"><button class="lucky-btn' + (ST.luckyMode === "tarot" ? ' on' : '') + '" data-lucky="tarot">塔羅</button>' +
+      '<button class="lucky-btn' + (ST.luckyMode === "astro" ? ' on' : '') + '" data-lucky="astro">星座</button></div>';
+    let sub = "抽一張塔羅牌，由牌的元素為你牽引出今日最適合的香水。同一天抽到的牌固定，明日換新。";
+    if (ST.luckyMode === "astro") {
+      sub = "依今天月亮實際所在的星座，對照你的太陽星座" + ZODIAC[MY_SIGN].zh + "，由月亮的元素挑出今日香水。";
+      if (!ST.collection.length) {
+        body = '<div class="hint">先新增幾款香水，才能為你挑出今日之選。</div>';
+      } else if (ST.astro) {
+        const a = ST.astro; const mz = ZODIAC[a.moonIdx]; const p = a.perfume;
+        const fLabel = a.aiLoading ? "占星師解讀中…" : "今日運勢";
+        const fortune = '<div class="tarot-fortune"><div class="fortune-label">' + fLabel + '</div>' + esc(a.fortune || a.aspect.text) + '</div>';
+        let pf = '<div class="hint">收藏裡還沒有適合的香水。</div>';
+        if (p) {
+          const orig = p.name && p.name !== p.nameZh ? '<span class="rl-orig">' + esc(p.name) + '</span>' : "";
+          pf = '<div class="tarot-perfume"><div class="rec-tag">' + IC.sparkles() + ' 今日幸運香水</div><div class="rec-name">' + esc(p.nameZh) + ' ' + orig + '</div><div class="rl-brand">' + esc(p.brand || "—") + '</div>' + pyramidHTML(p.notes, true) + '</div>';
+        }
+        body = '<div class="tarot-result"><div class="tarot-card front">' +
+          '<div class="astro-glyph">' + mz.glyph + '</div>' +
+          '<div class="tarot-name">月亮' + mz.zh + '</div>' +
+          '<div class="astro-meta">' + TAROT_ELEMENTS[mz.el].zh + '象 ・ ' + a.phase + '<br>與你的' + ZODIAC[MY_SIGN].zh + '：' + a.aspect.name + '</div>' +
+          '<div class="tarot-oracle">「' + esc(TAROT_ELEMENTS[mz.el].oracle) + '」</div></div>' +
+          fortune + pf + '</div>';
+      } else body = "";
+    }
+    tarotPanel = '<div class="narrow panel"><div class="w-title">本日幸運香水</div>' + luckyNav + '<div class="w-sub">' + sub + '</div>' + body + '</div>';
   }
 
   const tabNav =
@@ -1227,7 +1338,14 @@ function bind() {
   const add = document.getElementById("add-btn"); if (add) add.onclick = openAddForm;
   document.querySelectorAll("[data-tab]").forEach((b) => b.onclick = () => {
     ST.tab = b.getAttribute("data-tab");
-    if (ST.tab === "tarot" && !ST.tarot && !ST.tarotLoading) { drawTarot(false); return; }
+    if (ST.tab === "tarot" && ST.luckyMode === "astro") ensureAstro();
+    else if (ST.tab === "tarot" && !ST.tarot && !ST.tarotLoading) { drawTarot(false); return; }
+    render();
+  });
+  document.querySelectorAll("[data-lucky]").forEach((b) => b.onclick = () => {
+    ST.luckyMode = b.getAttribute("data-lucky");
+    if (ST.luckyMode === "astro") ensureAstro();
+    else if (!ST.tarot && !ST.tarotLoading) { drawTarot(false); return; }
     render();
   });
   const draw = document.getElementById("draw-card"); if (draw) draw.onclick = () => drawTarot(false);
@@ -1259,6 +1377,8 @@ function bind() {
   applyTheme();
   const savedTarot = raw.find((x) => x.id === "tarot_today");
   if (savedTarot && savedTarot.value) ST.tarotSaved = savedTarot.value;
+  const savedAstro = raw.find((x) => x.id === "astro_today");
+  if (savedAstro && savedAstro.value) ST.astroSaved = savedAstro.value;
   const tomb = raw.find((x) => x.id === "deleted_keys");
   ST.deletedKeys = (tomb && Array.isArray(tomb.value)) ? tomb.value : [];
 
