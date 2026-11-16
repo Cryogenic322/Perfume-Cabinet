@@ -864,6 +864,23 @@ function ensureAstro() {
     fortune: saved ? saved.fortune : "", aiSource: !!(saved && saved.fortune), aiTried: !!(saved && saved.fortune) };
   generateAstroFortune();
 }
+// 呼叫 Puter.js 的 AI：模型由強到弱依序嘗試，前面的用不了就往後退
+const AI_MODELS = ["gpt-5.4", "gpt-5.4-mini", "gpt-5.4-nano"];
+async function aiChat(prompt, opts) {
+  for (const model of AI_MODELS) {
+    try {
+      const resp = await puter.ai.chat(prompt, Object.assign({ model }, opts));
+      let text = "";
+      if (typeof resp === "string") text = resp;
+      else if (resp && resp.message && resp.message.content) text = resp.message.content;
+      else if (resp && resp.text) text = resp.text;
+      if (Array.isArray(text)) text = text.map((x) => (x && x.text) || "").join("");
+      text = String(text || "").trim();
+      if (text) return text;
+    } catch (e) { /* 換下一個模型 */ }
+  }
+  return "";
+}
 async function generateAstroFortune() {
   const a = ST.astro;
   if (!a || a.aiTried) return;
@@ -880,19 +897,12 @@ async function generateAstroFortune() {
     "今日星等（滿分 5）：整體 " + a.rating.stars.overall + "、工作 " + a.rating.stars.work + "、金錢 " + a.rating.stars.money + "、感情 " + a.rating.stars.love + "、健康 " + a.rating.stars.health + "\n" +
     "依今日月亮元素挑選的香水：" + perfumeDesc + "\n\n" +
     "請用繁體中文，以占星師對來訪者說話的口吻，寫一段 100～140 字的今日運勢。內容要根據上面的星象與星等，語氣要跟星等一致（星等低就提醒要留意的地方，星等高就鼓勵），不要編造其他行星位置。把星象的訊息和這款香水的氣味意象自然連結，給出今天的指引。只回傳那段話本身，不要前言、標題或引號。";
-  try {
-    const resp = await puter.ai.chat(prompt, { model: "gpt-5.4-nano", temperature: 0.9, max_tokens: 300 });
-    let text = "";
-    if (typeof resp === "string") text = resp;
-    else if (resp && resp.message && resp.message.content) text = resp.message.content;
-    else if (resp && resp.text) text = resp.text;
-    text = String(text).trim();
-    if (text && ST.astro === a) {
-      a.fortune = text; a.aiSource = true;
-      ST.astroSaved = { day: a.day, v: 2, fortune: text, perfumeId: p ? p.id : null };
-      try { await store.put({ id: "astro_today", _marker: true, value: ST.astroSaved }); } catch (e) {}
-    }
-  } catch (e) { /* AI 失敗 → 保留依相位寫好的說明 */ }
+  const text = await aiChat(prompt, { temperature: 0.9, max_tokens: 400 });
+  if (text && ST.astro === a) {
+    a.fortune = text; a.aiSource = true;
+    ST.astroSaved = { day: a.day, v: 2, fortune: text, perfumeId: p ? p.id : null };
+    try { await store.put({ id: "astro_today", _marker: true, value: ST.astroSaved }); } catch (e) {}
+  }
   a.aiLoading = false;
   render();
 }
@@ -1031,19 +1041,7 @@ async function generateAIFortune() {
     "【建議】今天可以做的一件具體的事。\n" +
     "【留意】今天要避免的一件具體的事。\n\n" +
     "規則：逆位要解成逆位的意思，不要當成正位。不要提到香水或氣味。不要用「或許」「可能」「也許」這類含糊的詞。不要加前言、結語、引號或其他標題。";
-  const models = ["gpt-5.4", "gpt-5.4-mini", "gpt-5.4-nano"];   // 由強到弱，前面的用不了就往後退
-  let text = "";
-  for (const model of models) {
-    try {
-      const resp = await puter.ai.chat(prompt, { model, temperature: 0.7, max_tokens: 700 });
-      if (typeof resp === "string") text = resp;
-      else if (resp && resp.message && resp.message.content) text = resp.message.content;
-      else if (resp && resp.text) text = resp.text;
-      if (Array.isArray(text)) text = text.map((x) => (x && x.text) || "").join("");
-      text = String(text || "").trim();
-      if (text) break;
-    } catch (e) { text = ""; }
-  }
+  const text = await aiChat(prompt, { temperature: 0.7, max_tokens: 700 });
   if (text && ST.tarot === t) {
     t.fortune = text;
     t.aiSource = true;
