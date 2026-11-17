@@ -192,6 +192,9 @@
 
   .tab-nav { display: flex; gap: 8px; margin-top: 18px; }
   .tab-btn { flex: 1; border: 1px solid var(--border-2); background: var(--glass-2); color: var(--muted); font-size: 14px; font-weight: 600; letter-spacing: 0.3px; padding: 13px; border-radius: 12px; cursor: pointer; transition: all .18s; }
+  .weather-sect { margin-top: -6px; display: flex; align-items: center; flex-wrap: wrap; gap: 6px; }
+  .weather-line { font-size: 12px; color: var(--muted); }
+  .weather-x { border: none; background: transparent; color: var(--muted); font-size: 18px; line-height: 1; cursor: pointer; padding: 2px 6px; }
   .lucky-nav { display: flex; gap: 6px; justify-content: center; margin: 14px 0 4px; }
   .lucky-btn { border: 1px solid var(--border-2); background: transparent; color: var(--muted); font-size: 13px; font-weight: 600; padding: 7px 18px; border-radius: 999px; cursor: pointer; transition: all .18s; font-family: inherit; }
   .lucky-btn.on { border-color: #C9A85C; color: var(--gold-text); background: rgba(201,168,92,0.10); }
@@ -1019,9 +1022,59 @@ function toggleFilter(facet, key) {
   ST.filterResult = null;
   render();
 }
+// ── 即時天氣：按按鈕才定位，用 Open-Meteo（免費、免金鑰）查目前氣溫與濕度 ──────
+// 依體感溫度與濕度換算成「體感季節」權重 [春, 夏, 秋, 冬]，再和每款的四季適配度加權
+function weatherSeasonWeights(feel, humid, month) {
+  // 先決定冷熱：夏、過渡季、冬三段
+  let su, mid, wi;
+  if (feel >= 28) { su = 1; mid = 0; wi = 0; }
+  else if (feel >= 22) { su = (feel - 22) / 6; mid = 1 - su; wi = 0; }
+  else if (feel >= 15) { su = 0; mid = 1; wi = 0; }
+  else if (feel >= 9) { su = 0; wi = (15 - feel) / 6; mid = 1 - wi; }
+  else { su = 0; mid = 0; wi = 1; }
+  // 悶熱：濕度高時重香更容易膩，往夏天推
+  if (humid >= 75 && feel >= 22) { const k = Math.min(0.3, mid); su += k; mid -= k; }
+  // 過渡季依月份分給春或秋（2–6 月偏春，8–12 月偏秋）
+  const springShare = (month >= 2 && month <= 6) ? 0.75 : (month >= 8) ? 0.25 : 0.5;
+  return [mid * springShare, su, mid * (1 - springShare), wi];
+}
+function weatherLabel(w) {
+  const names = ["春", "夏", "秋", "冬"];
+  const order = w.map((v, i) => [v, i]).sort((a, b) => b[0] - a[0]);
+  if (order[0][0] >= 0.7) return "體感偏" + names[order[0][1]];
+  return "體感介於" + names[order[0][1]] + names[order[1][1]] + "之間";
+}
+function fetchWeather() {
+  if (!navigator.geolocation) { ST.weather = { error: "這個瀏覽器不支援定位。" }; render(); return; }
+  ST.weather = { loading: true }; render();
+  navigator.geolocation.getCurrentPosition(async (pos) => {
+    try {
+      const lat = pos.coords.latitude.toFixed(2), lon = pos.coords.longitude.toFixed(2);   // 只送到小數兩位（約 1 公里）
+      const url = "https://api.open-meteo.com/v1/forecast?latitude=" + lat + "&longitude=" + lon +
+        "&current=temperature_2m,apparent_temperature,relative_humidity_2m&timezone=auto";
+      const j = await (await fetch(url)).json();
+      const c = j && j.current;
+      if (!c || c.temperature_2m == null) throw new Error("no data");
+      const month = new Date().getMonth() + 1;
+      const weights = weatherSeasonWeights(c.apparent_temperature, c.relative_humidity_2m, month);
+      ST.weather = { temp: Math.round(c.temperature_2m), feel: Math.round(c.apparent_temperature), humid: Math.round(c.relative_humidity_2m), weights, label: weatherLabel(weights), at: Date.now() };
+      runFilter();
+    } catch (e) {
+      ST.weather = { error: "天氣資料讀取失敗，請稍後再試。" }; render();
+    }
+  }, (err) => {
+    ST.weather = { error: err && err.code === 1 ? "沒有取得定位權限。可以到瀏覽器設定允許這個網站使用位置。" : "定位失敗，請稍後再試。" };
+    render();
+  }, { enableHighAccuracy: false, timeout: 12000, maximumAge: 30 * 60 * 1000 });
+}
+function weatherFitOf(p) {
+  const v = seasonVector(p); if (!v || !ST.weather || !ST.weather.weights) return null;
+  return ST.weather.weights.reduce((a, w, i) => a + w * v[i], 0);
+}
+
 function resetFilters() {
   ST.filters = { season: [], family: [], mood: [], occasion: [] };
-  ST.avoidText = ""; ST.searchText = ""; ST.filterResult = null;
+  ST.avoidText = ""; ST.searchText = ""; ST.filterResult = null; ST.weather = null;
   render();
 }
 function runFilter() {
@@ -1034,6 +1087,7 @@ function runFilter() {
   const activeFacets = [];
   ["season","family","mood","occasion"].forEach((f) => ST.filters[f].forEach((k) => activeFacets.push({ facet: f, key: k })));
   const seasonKeys = ST.filters.season.slice();
+  const useWeather = !!(ST.weather && ST.weather.weights);
 
   const scored = ST.collection.map((p) => {
     const all = allNotesOf(p);
@@ -1059,6 +1113,12 @@ function runFilter() {
         const opt = FACETS.season.options.find((o) => o.key === k);
         reasons.push(opt.label + " " + Math.round(v[SEASON_INDEX[k]] * 100) + "%");
       });
+    }
+    // 今天天氣：按過「依今天天氣推薦」才生效，和季節一樣低於門檻就不列
+    if (useWeather && !excluded) {
+      const wf = weatherFitOf(p);
+      if (wf == null || wf < SEASON_MIN) excluded = true;
+      else { reasons.push("今天天氣 " + Math.round(wf * 100) + "%"); seasonFit = Math.min(seasonFit == null ? 1 : seasonFit, wf); }
     }
     // 香調：比對香調關鍵字。心情／場合：依每款的網路香評標註（TAG_PROFILE），沒標註的新款才退回關鍵字。
     // 選了的每一個條件都要符合，選越多結果越少。
@@ -1088,7 +1148,7 @@ function runFilter() {
     return { perfume: p, score, seasonFit, tagFit, noteHits, reasons: [...new Set(reasons)], excluded };
   });
 
-  const hasScoring = activeFacets.length > 0;
+  const hasScoring = activeFacets.length > 0 || useWeather;
   const hasAnyCondition = hasScoring || terms.length > 0 || avoidList.length > 0;
   let list = scored.filter((s) => !s.excluded);
   // 排序：季節適配度 → 香調／心情／場合命中數 → 搜尋命中香調數 → 名稱。列出全部符合的款，不設上限。
@@ -1263,9 +1323,16 @@ function render() {
       resultHTML = '<div class="rec-list"><div class="rec-head"><span class="rec-tag">' + IC.sparkles() + (fr.hasScoring ? ' 為你推薦' : ' 搜尋結果') + '</span><span class="rec-count">' + fr.list.length + ' 款</span></div>' + rows + '</div>';
     }
   }
+  const W = ST.weather;
+  let weatherHTML = '<button class="fchip weather-btn" id="weather-btn">☀ 依今天天氣推薦</button>';
+  if (W && W.loading) weatherHTML = '<span class="weather-line">' + IC.spinner(11) + ' 定位並讀取天氣中…</span>';
+  else if (W && W.error) weatherHTML = '<span class="weather-line">' + esc(W.error) + '</span> <button class="fchip weather-btn" id="weather-btn">再試一次</button>';
+  else if (W && W.weights) weatherHTML = '<button class="fchip on weather-btn" id="weather-btn" title="重新讀取">☀ ' + W.temp + '°C（體感 ' + W.feel + '°C）・濕度 ' + W.humid + '%・' + W.label + '</button>' +
+    '<button class="weather-x" id="weather-off" aria-label="取消天氣條件">×</button>';
   const filterBody =
     '<div class="filter-sect"><input class="input" id="search-text" value="' + esc(ST.searchText) + '" placeholder="🔍 名稱、品牌或想要的氣味，多個用、或空格分隔"></div>' +
     '<div class="filter-sect"><div class="f-sect-title">' + FACETS.season.title + '</div><div class="fchip-row">' + facetChips("season") + '</div></div>' +
+    '<div class="filter-sect weather-sect">' + weatherHTML + '</div>' +
     '<div class="filter-sect"><div class="f-sect-title">' + FACETS.family.title + '</div><div class="fchip-row">' + facetChips("family") + '</div></div>' +
     '<div class="filter-sect"><div class="f-sect-title">' + FACETS.mood.title + '</div><div class="fchip-row">' + facetChips("mood") + '</div></div>' +
     '<div class="filter-sect"><div class="f-sect-title">' + FACETS.occasion.title + '</div><div class="fchip-row">' + facetChips("occasion") + '</div></div>' +
@@ -1394,6 +1461,8 @@ function bind() {
   document.querySelectorAll("[data-colbrand]").forEach((b) => b.onclick = () => { syncFilterInputs(); ST.collectionBrand = b.getAttribute("data-colbrand") || null; render(); });
   document.querySelectorAll("[data-facet]").forEach((b) => b.onclick = () => toggleFilter(b.getAttribute("data-facet"), b.getAttribute("data-fkey")));
   const rf = document.getElementById("run-filter"); if (rf) rf.onclick = runFilter;
+  const wb = document.getElementById("weather-btn"); if (wb) wb.onclick = () => { syncFilterInputs(); fetchWeather(); };
+  const wo = document.getElementById("weather-off"); if (wo) wo.onclick = () => { syncFilterInputs(); ST.weather = null; if (ST.filterResult) runFilter(); else render(); };
   const st = document.getElementById("search-text"); if (st) st.onkeydown = (e) => { if (e.key === "Enter") runFilter(); };
   const rsf = document.getElementById("reset-filter"); if (rsf) rsf.onclick = resetFilters;
   document.querySelectorAll("[data-edit]").forEach((b) => b.onclick = () => { const it = ST.collection.find((c)=>c.id===b.getAttribute("data-edit")); if (it) openEditForm(it); });
