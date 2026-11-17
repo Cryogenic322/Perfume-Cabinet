@@ -1273,7 +1273,7 @@ function render() {
     '<div class="filter-btns"><button class="save-btn" id="run-filter" style="flex:1">推薦給我</button><button class="reset-btn" id="reset-filter">清除</button></div>' +
     resultHTML;
   const filterPanel =
-    '<div class="narrow panel"><div class="w-title">今天該擦哪一瓶？</div><div class="w-sub">搜尋或挑選季節、香調、心情、場合，按「推薦給我」，列出收藏中所有符合的款，最適合的排在前面。季節依每款的四季適配度判斷。（心情與場合由香調自動判斷，僅供參考）</div>' + filterBody + '</div>';
+    '<div class="narrow panel"><div class="w-title">今天該擦哪一瓶？</div><div class="w-sub">搜尋或挑選季節、香調、心情、場合，按「推薦給我」，列出收藏中所有符合的款，最適合的排在前面。季節依每款的四季適配度判斷。</div>' + filterBody + '</div>';
 
   // ── 塔羅分頁 ──
   let tarotPanel = "";
@@ -1319,7 +1319,7 @@ function render() {
     }
     const luckyNav = '<div class="lucky-nav"><button class="lucky-btn' + (ST.luckyMode === "tarot" ? ' on' : '') + '" data-lucky="tarot">塔羅</button>' +
       '<button class="lucky-btn' + (ST.luckyMode === "astro" ? ' on' : '') + '" data-lucky="astro">星座</button></div>';
-    let sub = "抽一張塔羅牌，選想看的主題。解牌來自內建的牌義資料庫，不經過任何 AI 或外部服務。今日香水由牌的元素挑選。同一天的牌固定，明日換新。";
+    let sub = "抽一張塔羅牌，選想看的主題。";
     if (ST.luckyMode === "astro") {
       sub = "依今天月亮實際所在的星座，對照你的太陽星座" + ZODIAC[MY_SIGN].zh + "，由月亮的元素挑出今日香水。";
       if (!ST.collection.length) {
