@@ -373,20 +373,10 @@ const TAROT_FALLBACK = [
   { name: "Ace of Pentacles", nameZh: "錢幣王牌", upright: "豐盛、實現、根基", reversed: "錯失機會、不穩、過度物質", element: "earth" },
 ];
 
-// 正逆位的運勢口吻模板（結合牌義關鍵字生成）
-function fortuneText(card, reversed) {
-  const meaning = reversed ? (card.reversed || card.upright) : card.upright;
-  const el = (TAROT_ELEMENTS[card.element] || TAROT_ELEMENTS.aether).zh;
-  if (reversed) {
-    return "逆位的「" + card.nameZh + "」提醒你：今天或許帶著「" + meaning + "」的課題。別急著對抗，這張牌要你慢下來、向內看。" + el + "元素的香氣會陪你穩住節奏，把卡住的地方輕輕鬆開。";
-  }
-  return "正位的「" + card.nameZh + "」為你開場：今天的關鍵字是「" + meaning + "」。順著這股能量走，會比平常更順。讓" + el + "元素的香氣成為今天的註腳，提醒自己正走在對的方向。";
-}
-
 // 牌名 → 中文（API 回傳英文時對照；查不到就顯示英文）
 const TAROT_NAME_ZH = {};
 TAROT_FALLBACK.forEach((c) => { TAROT_NAME_ZH[c.name] = c.nameZh; });
-// 補齊 78 張：大牌（含 tarotapi.dev 的別名）＋四組小牌
+// 補齊 78 張：大牌（含舊版存檔用過的別名）＋四組小牌
 Object.assign(TAROT_NAME_ZH, {
   "The Fool":"愚者","The Magician":"魔術師","The High Priestess":"女祭司","The Empress":"皇后","The Emperor":"皇帝",
   "The Hierophant":"教皇","The Lovers":"戀人","The Chariot":"戰車","Strength":"力量","Fortitude":"力量","The Hermit":"隱者",
