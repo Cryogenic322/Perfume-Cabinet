@@ -228,8 +228,10 @@
   .orient.up { color: var(--sage); background: rgba(159,181,140,0.14); border: 1px solid rgba(159,181,140,0.35); }
   .orient.rev { color: var(--rose); background: rgba(208,140,151,0.14); border: 1px solid rgba(208,140,151,0.35); }
   .tarot-ask { margin-top: 14px; text-align: center; }
-  .tarot-ask .input { margin-top: 10px; }
-  .tarot-fortune { white-space: pre-line; margin-top: 16px; padding: 14px 16px; background: rgba(201,168,92,0.07); border: 1px solid rgba(201,168,92,0.25); border-radius: 12px; font-size: 13px; line-height: 1.8; color: var(--text-soft); }
+  .tr-sec { margin-top: 10px; }
+  .tr-sec:first-of-type { margin-top: 0; }
+  .tr-label { display: inline-block; font-size: 11px; font-weight: 700; letter-spacing: 1px; color: var(--gold-text); border: 1px solid rgba(201,168,92,0.45); border-radius: 999px; padding: 0 9px; margin-right: 8px; line-height: 1.7; }
+  .tarot-fortune { margin-top: 16px; padding: 14px 16px; background: rgba(201,168,92,0.07); border: 1px solid rgba(201,168,92,0.25); border-radius: 12px; font-size: 13px; line-height: 1.8; color: var(--text-soft); }
   .fortune-label { display: flex; align-items: center; gap: 5px; font-size: 11px; letter-spacing: 1.5px; text-transform: uppercase; color: var(--gold-label); font-weight: 600; margin-bottom: 7px; }
 
   .filter-head { display: flex; align-items: center; justify-content: space-between; }
@@ -400,6 +402,44 @@ Object.assign(TAROT_NAME_ZH, {
 const TAROT_TOPICS = [
   { key: "overall", label: "整體" }, { key: "work", label: "工作" }, { key: "love", label: "感情" }, { key: "money", label: "金錢" },
 ];
+// 完整 78 張牌（本機抽牌，不連網）。大牌元素依黃金黎明的星象對應，小牌依花色。
+const TAROT_MAJOR = [
+  ["The Fool","air"],["The Magician","air"],["The High Priestess","water"],["The Empress","earth"],["The Emperor","fire"],
+  ["The Hierophant","earth"],["The Lovers","air"],["The Chariot","water"],["Strength","fire"],["The Hermit","earth"],
+  ["Wheel of Fortune","fire"],["Justice","air"],["The Hanged Man","water"],["Death","water"],["Temperance","fire"],
+  ["The Devil","earth"],["The Tower","fire"],["The Star","air"],["The Moon","water"],["The Sun","fire"],["Judgement","fire"],["The World","earth"],
+];
+const TAROT_DECK = [];
+TAROT_MAJOR.forEach(([name, element]) => TAROT_DECK.push({ name, nameZh: TAROT_NAME_ZH[name] || name, element, arcana: "major" }));
+[["Wands","fire"],["Cups","water"],["Swords","air"],["Pentacles","earth"]].forEach(([suit, element]) => {
+  ["Ace","Two","Three","Four","Five","Six","Seven","Eight","Nine","Ten","Page","Knight","Queen","King"].forEach((r) => {
+    const name = r + " of " + suit;
+    TAROT_DECK.push({ name, nameZh: TAROT_NAME_ZH[name] || name, element, arcana: "minor", suit });
+  });
+});
+const TAROT_ALIAS = { "Fortitude": "Strength", "Wheel Of Fortune": "Wheel of Fortune", "The Last Judgment": "Judgement", "Judgment": "Judgement" };
+function tarotCardByName(name) {
+  const n = TAROT_ALIAS[name] || name;
+  return TAROT_DECK.find((c) => c.name === n) || null;
+}
+// 內建解牌資料庫（tarot-data.json，同站載入，不經第三方）
+let TAROT_DB = null, TAROT_DB_LOADING = null;
+function loadTarotDB() {
+  if (TAROT_DB) return Promise.resolve(TAROT_DB);
+  if (!TAROT_DB_LOADING) {
+    TAROT_DB_LOADING = fetch("tarot-data.json").then((r) => r.json()).then((d) => { TAROT_DB = d; return d; })
+      .catch(() => { TAROT_DB_LOADING = null; return null; });
+  }
+  return TAROT_DB_LOADING;
+}
+// 取出某張牌、某個位置、某個主題的解說；資料還沒載入就回 null
+function tarotReading(card, reversed, topic) {
+  const e = TAROT_DB && TAROT_DB[card.name]; if (!e) return null;
+  const side = e[reversed ? "rev" : "up"]; if (!side) return null;
+  const t = side[topic] || side.overall; if (!t) return null;
+  return { core: side.core, s: t.s, do: t.do, avoid: t.avoid };
+}
+
 
 // ── 多維度篩選：香調 → 家族 / 心情 / 場合（自動推測，關鍵字比對） ──
 const FACETS = {
@@ -561,7 +601,6 @@ const ST = {
   tarot: null,            // { card, perfume, oracle, flipped }
   tarotLoading: false,
   tarotTopic: "overall",  // 塔羅想看的主題
-  tarotQuestion: "",      // 選填：想問的事
   luckyMode: "tarot",     // "tarot" | "astro"
   astro: null,            // 今日星象與幸運香水
 };
@@ -928,66 +967,33 @@ async function drawTarot(force) {
   // 同一天已抽過就直接用（除非 force 重抽）
   const saved = ST.tarotSaved;
   const tk = todayKey();
+  loadTarotDB().then(() => { if (ST.tab === "tarot") render(); });
   if (!force && saved && saved.day === tk) {
-    ST.tarot = { card: saved.card, reversed: saved.reversed, fortune: saved.fortune, perfume: ST.collection.find((c) => c.id === saved.perfumeId) || perfumeForElement(saved.card.element, saved.card.name + tk), oracle: saved.oracle, flipped: false, aiSource: !!saved.aiSource, topic: saved.topic || "", question: saved.question || "" };
-    if (saved.topic) { ST.tarotTopic = saved.topic; ST.tarotQuestion = saved.question || ""; }
-    render();
-    return;
-  }
-  ST.tarotLoading = true; render();
-  let card = null;
-  // 先試 tarotapi.dev（連網）
-  try {
-    const r = await fetch("https://tarotapi.dev/api/v1/cards/random?n=1");
-    const j = await r.json();
-    const c = j && j.cards && j.cards[0];
-    if (c) {
-      const elemGuess = guessElement(c);
-      card = {
-        name: c.name,
-        nameZh: TAROT_NAME_ZH[c.name] || c.name,
-        upright: c.meaning_up ? c.meaning_up.split(/[,.;]/).slice(0,2).join("、").trim() : "",
-        reversed: c.meaning_rev ? c.meaning_rev.split(/[,.;]/).slice(0,2).join("、").trim() : "",
-        element: elemGuess,
-        upFull: String(c.meaning_up || "").slice(0, 500),
-        revFull: String(c.meaning_rev || "").slice(0, 500),
-        desc: String(c.desc || "").slice(0, 700),
-        suit: c.suit || "", arcana: c.type || "",
-        source: "api",
-      };
+    const card = tarotCardByName(saved.cardName || (saved.card && saved.card.name));
+    if (card) {
+      if (saved.topic) ST.tarotTopic = saved.topic;
+      ST.tarot = { card, reversed: !!saved.reversed, oracle: TAROT_ELEMENTS[card.element].oracle, flipped: false,
+        perfume: ST.collection.find((c) => c.id === saved.perfumeId) || perfumeForElement(card.element, card.name + tk) };
+      render();
+      return;
     }
-  } catch (e) { /* 連不上 → 用內建 */ }
-  // 每次抽牌產生一個隨機 nonce，讓這次抽牌真正隨機（同日已抽過會走前面 saved 分支固定）
-  const nonce = Math.random().toString(36).slice(2) + Date.now();
-  // 備援：內建牌庫
-  if (!card) {
-    const fb = seededPick(TAROT_FALLBACK, nonce) || TAROT_FALLBACK[0];
-    card = { name: fb.name, nameZh: fb.nameZh, upright: fb.upright, reversed: fb.reversed, element: fb.element, source: "fallback" };
   }
-  const orient = seededPick([false, false, true, true], card.name + nonce);
-  const reversed = !!orient;
-  const seedStr = card.name + nonce;
-  const perfume = perfumeForElement(card.element, seedStr);
-  const oracle = (TAROT_ELEMENTS[card.element] || TAROT_ELEMENTS.aether).oracle;
-  const fortune = fortuneText(card, reversed);
-  ST.tarot = { card, reversed, fortune, perfume, oracle, flipped: false };
+  // 本機隨機抽牌與正逆位
+  const rnd = (n) => {
+    try { const a = new Uint32Array(1); crypto.getRandomValues(a); return a[0] % n; } catch (e) { return Math.floor(Math.random() * n); }
+  };
+  const card = TAROT_DECK[rnd(TAROT_DECK.length)];
+  const reversed = rnd(2) === 1;
+  const perfume = perfumeForElement(card.element, card.name + Date.now() + rnd(100000));
+  ST.tarot = { card, reversed, perfume, oracle: TAROT_ELEMENTS[card.element].oracle, flipped: false };
   ST.tarotLoading = false;
-  // 存今日結果
-  ST.tarotSaved = { day: tk, card, reversed, fortune, perfumeId: perfume ? perfume.id : null, oracle };
-  try { await store.put({ id: "tarot_today", _marker: true, value: ST.tarotSaved }); } catch (e) {}
+  await saveTarotToday();
   render();
 }
-
-// 由 API 牌面推測元素
-function guessElement(c) {
-  const suit = (c.suit || "").toLowerCase();
-  if (suit.indexOf("wand") >= 0) return "fire";
-  if (suit.indexOf("cup") >= 0) return "water";
-  if (suit.indexOf("sword") >= 0) return "air";
-  if (suit.indexOf("pentacle") >= 0 || suit.indexOf("coin") >= 0) return "earth";
-  // 大牌：用牌名對照內建表的元素，否則靈
-  const fb = TAROT_FALLBACK.find((x) => x.name === c.name);
-  return fb ? fb.element : "aether";
+async function saveTarotToday() {
+  const t = ST.tarot; if (!t) return;
+  ST.tarotSaved = { day: todayKey(), cardName: t.card.name, reversed: t.reversed, perfumeId: t.perfume ? t.perfume.id : null, topic: ST.tarotTopic };
+  try { await store.put({ id: "tarot_today", _marker: true, value: ST.tarotSaved }); } catch (e) {}
 }
 
 function applyTheme() {
@@ -1006,55 +1012,11 @@ async function toggleTheme() {
 function flipTarot() {
   if (!ST.tarot || ST.tarot.flipped) return;
   const el = document.getElementById("flip-card");
-  const q = document.getElementById("tarot-q"); if (q) ST.tarotQuestion = q.value.trim().slice(0, 80);
-  const reveal = () => { ST.tarot.flipped = true; render(); generateAIFortune(); };
+  const reveal = () => { ST.tarot.flipped = true; saveTarotToday(); render(); };
   if (el) { el.classList.add("flipping"); setTimeout(reveal, 280); }
   else reveal();
 }
 
-async function generateAIFortune() {
-  const t = ST.tarot;
-  if (!t || t.aiTried) return;
-  t.aiTried = true;
-  // 今天已經用同樣的主題和問題解過 → 沿用，不重寫
-  if (t.aiSource && t.topic === ST.tarotTopic && (t.question || "") === ST.tarotQuestion) return;
-  // Puter.js 沒載入或不可用 → 直接用模板，不動作
-  if (typeof puter === "undefined" || !puter.ai || !puter.ai.chat) return;
-  t.aiLoading = true; render();
-  const pos = t.reversed ? "逆位" : "正位";
-  const c = t.card;
-  const keywords = t.reversed ? (c.reversed || c.upright) : c.upright;
-  const full = t.reversed ? (c.revFull || "") : (c.upFull || "");
-  const topic = (TAROT_TOPICS.find((x) => x.key === ST.tarotTopic) || TAROT_TOPICS[0]).label;
-  const q = ST.tarotQuestion;
-  const prompt = "你是一位執業多年的萊德偉特塔羅占卜師，解牌具體、直接、不講空話。現在做一張牌的今日占卜。\n\n" +
-    "牌：" + (c.nameZh || c.name) + "（" + c.name + "），" + pos + "\n" +
-    (c.arcana ? "類別：" + (c.arcana === "major" ? "大阿爾克那" : "小阿爾克那" + (c.suit ? "，" + c.suit : "")) + "\n" : "") +
-    "牌義關鍵字：" + keywords + "\n" +
-    (full ? "這個位置的完整牌義（英文原文）：" + full + "\n" : "") +
-    (c.desc ? "牌面畫面與傳統解釋（英文原文）：" + c.desc + "\n" : "") +
-    "來訪者想看的主題：" + topic + "\n" +
-    (q ? "來訪者想問的事：" + q + "\n" : "") +
-    "\n請用繁體中文、台灣用語寫解牌，總長 180～240 字，分成四段，每段開頭用下面的標題，標題後直接接內容，段與段之間換行：\n" +
-    "【牌義】這張牌在" + pos + "的核心意思，要提到牌面上的具體畫面或象徵。\n" +
-    "【" + topic + "】放在「" + topic + "」這個主題上，今天代表什麼狀況。" + (q ? "要直接回應來訪者問的事。" : "") + "要講具體情境，不要寫對任何人都成立的話。\n" +
-    "【建議】今天可以做的一件具體的事。\n" +
-    "【留意】今天要避免的一件具體的事。\n\n" +
-    "規則：逆位要解成逆位的意思，不要當成正位。不要提到香水或氣味。不要用「或許」「可能」「也許」這類含糊的詞。不要加前言、結語、引號或其他標題。";
-  const text = await aiChat(prompt, { temperature: 0.7, max_tokens: 700 });
-  if (text && ST.tarot === t) {
-    t.fortune = text;
-    t.aiSource = true;
-    t.topic = ST.tarotTopic; t.question = ST.tarotQuestion;
-    // 更新今日存檔
-    if (ST.tarotSaved && ST.tarotSaved.day === todayKey()) {
-      ST.tarotSaved.fortune = text; ST.tarotSaved.aiSource = true; ST.tarotSaved.topic = ST.tarotTopic; ST.tarotSaved.question = ST.tarotQuestion;
-      try { await store.put({ id: "tarot_today", _marker: true, value: ST.tarotSaved }); } catch (e) {}
-    }
-  }
-  t.aiLoading = false;
-  render();
-}
 function syncFilterInputs() {
   const q = document.getElementById("search-text"); if (q) ST.searchText = q.value;
   const a = document.getElementById("avoid-text"); if (a) ST.avoidText = a.value;
@@ -1335,8 +1297,7 @@ function render() {
       body = '<div class="tarot-stage"><div class="tarot-card back" id="draw-card"><div class="tarot-back-emblem">✦</div><div class="tarot-back-text">點擊抽出今日的牌</div></div></div>';
     } else if (!ST.tarot.flipped) {
       const chips = TAROT_TOPICS.map((x) => '<button class="lucky-btn' + (ST.tarotTopic === x.key ? ' on' : '') + '" data-topic="' + x.key + '">' + x.label + '</button>').join("");
-      body = '<div class="tarot-ask"><div class="f-sect-title">想看哪方面？</div><div class="lucky-nav" style="margin-top:8px">' + chips + '</div>' +
-        '<input class="input" id="tarot-q" maxlength="80" value="' + esc(ST.tarotQuestion) + '" placeholder="想問的事（選填），例如：這週的提案會順利嗎"></div>' +
+      body = '<div class="tarot-ask"><div class="f-sect-title">想看哪方面？</div><div class="lucky-nav" style="margin-top:8px">' + chips + '</div></div>' +
         '<div class="tarot-stage"><div class="tarot-card back" id="flip-card"><div class="tarot-back-emblem">✦</div><div class="tarot-back-text">點擊翻牌</div></div></div>';
     } else {
       const t = ST.tarot; const p = t.perfume;
@@ -1345,16 +1306,21 @@ function render() {
       const orientBadge = t.reversed
         ? '<span class="orient rev">逆位 ↓</span>'
         : '<span class="orient up">正位 ↑</span>';
-      const meaning = t.reversed ? (t.card.reversed || t.card.upright) : t.card.upright;
-      const up = (meaning && /[\u4e00-\u9fff]/.test(meaning)) ? '<div class="tarot-up">' + esc(meaning) + '</div>' : "";   // 英文關鍵字不顯示，交給解牌說明
-      const fLabel = t.aiLoading ? (IC.spinner(11) + ' 占卜師正在解牌…') : ((IC.sparkles() + ' 今日解牌') + (t.aiSource && t.topic ? ' · ' + (TAROT_TOPICS.find((x) => x.key === t.topic) || TAROT_TOPICS[0]).label : ''));
-      const fortune = t.fortune ? '<div class="tarot-fortune"><div class="fortune-label">' + fLabel + '</div>' + esc(t.fortune) + '</div>' : "";
+      const up = "";
+      const topicLabel = (TAROT_TOPICS.find((x) => x.key === ST.tarotTopic) || TAROT_TOPICS[0]).label;
+      const chips = TAROT_TOPICS.map((x) => '<button class="lucky-btn' + (ST.tarotTopic === x.key ? ' on' : '') + '" data-topic="' + x.key + '">' + x.label + '</button>').join("");
+      const rd = tarotReading(t.card, t.reversed, ST.tarotTopic);
+      const sec = (label, text) => '<div class="tr-sec"><span class="tr-label">' + label + '</span>' + esc(text) + '</div>';
+      const fortune = '<div class="lucky-nav" style="margin-top:16px">' + chips + '</div>' +
+        '<div class="tarot-fortune"><div class="fortune-label">' + IC.sparkles() + ' 今日解牌 · ' + topicLabel + '</div>' +
+        (rd ? sec("牌義", rd.core) + sec(topicLabel, rd.s) + sec("建議", rd.do) + sec("留意", rd.avoid)
+            : '<div class="hint">解牌資料載入中…連不上網路時請稍後重新整理。</div>') + '</div>';
       let pf = '<div class="hint">收藏裡還沒有適合的香水。</div>';
       if (p) {
         const orig = p.name && p.name !== p.nameZh ? '<span class="rl-orig">' + esc(p.name) + '</span>' : "";
         pf = '<div class="tarot-perfume"><div class="rec-tag">' + IC.sparkles() + ' 今日幸運香水</div><div class="rec-name">' + esc(p.nameZh) + ' ' + orig + '</div><div class="rl-brand">' + esc(p.brand || "—") + '</div>' + pyramidHTML(p.notes, true) + '</div>';
       }
-      const src = t.card.source === "fallback" ? '<div class="tarot-src">（離線牌庫）</div>' : "";
+      const src = "";
       body = '<div class="tarot-result"><div class="tarot-card front' + (t.reversed ? ' reversed' : '') + '">' +
         '<div class="tarot-elem">' + elZh + '</div>' + orientBadge + '<div class="tarot-name">' + esc(cardName) + '</div>' + up +
         '<div class="tarot-oracle">「' + esc(t.oracle) + '」</div></div>' +
@@ -1363,7 +1329,7 @@ function render() {
     }
     const luckyNav = '<div class="lucky-nav"><button class="lucky-btn' + (ST.luckyMode === "tarot" ? ' on' : '') + '" data-lucky="tarot">塔羅</button>' +
       '<button class="lucky-btn' + (ST.luckyMode === "astro" ? ' on' : '') + '" data-lucky="astro">星座</button></div>';
-    let sub = "抽一張塔羅牌，選好想看的主題再翻牌。今日香水由牌的元素挑選。同一天抽到的牌固定，明日換新。";
+    let sub = "抽一張塔羅牌，選想看的主題。解牌來自內建的牌義資料庫，不經過任何 AI 或外部服務。今日香水由牌的元素挑選。同一天的牌固定，明日換新。";
     if (ST.luckyMode === "astro") {
       sub = "依今天月亮實際所在的星座，對照你的太陽星座" + ZODIAC[MY_SIGN].zh + "，由月亮的元素挑出今日香水。";
       if (!ST.collection.length) {
@@ -1421,8 +1387,7 @@ function bind() {
     render();
   });
   document.querySelectorAll("[data-topic]").forEach((b) => b.onclick = () => {
-    const q = document.getElementById("tarot-q"); if (q) ST.tarotQuestion = q.value;
-    ST.tarotTopic = b.getAttribute("data-topic"); render();
+    ST.tarotTopic = b.getAttribute("data-topic"); saveTarotToday(); render();
   });
   document.querySelectorAll("[data-lucky]").forEach((b) => b.onclick = () => {
     ST.luckyMode = b.getAttribute("data-lucky");
