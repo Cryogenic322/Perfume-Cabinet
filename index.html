@@ -205,8 +205,12 @@
   .astro-star-row .st i { font-style: normal; opacity: 0.25; }
   .astro-hits { margin-top: 10px; text-align: left; }
   .astro-hits .f-sect-title { margin-bottom: 6px; }
-  .astro-hits .hit-pill { display: inline-block; white-space: nowrap; margin: 0 6px 6px 0; }
-  @media (max-width: 540px) { .astro-hits .hit-pill { display: table; margin: 0 0 6px 0; } }
+  .astro-hit { display: flex; align-items: center; justify-content: space-between; gap: 10px; padding: 7px 12px; margin-bottom: 6px; border-radius: 10px; background: rgba(201,168,92,0.08); border: 1px solid rgba(201,168,92,0.25); color: var(--gold-text-2); font-size: 13px; white-space: nowrap; }
+  .tone-badge { flex: none; font-size: 11px; font-weight: 700; padding: 1px 9px; border-radius: 999px; letter-spacing: 1px; }
+  .tone-badge.good { background: rgba(201,168,92,0.22); color: var(--gold-text); border: 1px solid rgba(201,168,92,0.5); }
+  .tone-badge.tense { background: rgba(176,96,80,0.14); color: #A0574A; border: 1px solid rgba(176,96,80,0.4); }
+  .tone-badge.mid { background: rgba(140,140,140,0.12); color: var(--muted); border: 1px solid rgba(140,140,140,0.3); }
+  body.dark .tone-badge.tense { color: #D99484; }
   .astro-house { font-size: 12px; color: var(--muted); margin-top: 8px; line-height: 1.6; }
   .astro-meta { font-size: 12px; color: var(--muted); margin-top: 6px; line-height: 1.7; }
   .tab-btn:hover { border-color: rgba(201,168,92,0.4); color: var(--text-chip); }
@@ -976,9 +980,13 @@ function transitStars(tr, phase) {
   r.overall = Math.max(1, Math.min(5, Math.round((r.work + r.money + r.love + r.health) / 4 + jup * 0.5)));
   return r;
 }
+function hitBadge(h) {
+  const t = hitTone(h);
+  return t > 0 ? '<span class="tone-badge good">順</span>' : t < 0 ? '<span class="tone-badge tense">緊</span>' : '<span class="tone-badge mid">中</span>';
+}
 function hitLabel(h) {
   const T = PLANETS.find((p) => p.key === h.t).zh, N = PLANETS.find((p) => p.key === h.n).zh;
-  return T + h.aspect.short + "你的本命" + N + (hitTone(h) > 0 ? "（順）" : hitTone(h) < 0 ? "（緊）" : "");
+  return T + " · " + h.aspect.short + " · 本命" + N;
 }
 
 function ensureAstro() {
@@ -1525,8 +1533,8 @@ function render() {
         const rs = a.rating.stars;
         const starsHTML = '<div class="astro-stars">' + starRow("整體", rs.overall) + starRow("工作", rs.work) + starRow("金錢", rs.money) + starRow("感情", rs.love) + starRow("健康", rs.health) +
           (a.tr && (a.tr.hits.length || a.tr.retro.length) ? '<div class="astro-hits"><div class="f-sect-title">今日重點星象</div>' +
-            a.tr.hits.slice(0, 3).map((h) => '<span class="hit-pill">' + esc(hitLabel(h)) + '</span>').join("") +
-            a.tr.retro.map((k) => '<span class="hit-pill">' + PLANETS.find((q) => q.key === k).zh + '逆行</span>').join("") + '</div>' : '') +
+            a.tr.hits.slice(0, 3).map((h) => '<div class="astro-hit"><span>' + esc(hitLabel(h)) + '</span>' + hitBadge(h) + '</div>').join("") +
+            a.tr.retro.map((k) => '<div class="astro-hit"><span>' + PLANETS.find((q) => q.key === k).zh + '逆行</span></div>').join("") + '</div>' : '') +
           '<div class="astro-house">月亮走到你的第 ' + a.rating.house + ' 宮：' + a.rating.theme + '</div></div>';
         let pf = '<div class="hint">收藏裡還沒有適合的香水。</div>';
         if (p) {
