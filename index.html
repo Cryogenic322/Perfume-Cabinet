@@ -203,6 +203,8 @@
   .astro-star-row { display: flex; justify-content: space-between; align-items: center; font-size: 13px; padding: 4px 0; color: var(--text-chip); }
   .astro-star-row .st { color: #C9A85C; letter-spacing: 3px; font-size: 14px; }
   .astro-star-row .st i { font-style: normal; opacity: 0.25; }
+  .astro-hits { margin-top: 10px; text-align: left; }
+  .astro-hits .f-sect-title { margin-bottom: 6px; }
   .astro-house { font-size: 12px; color: var(--muted); margin-top: 8px; line-height: 1.6; }
   .astro-meta { font-size: 12px; color: var(--muted); margin-top: 6px; line-height: 1.7; }
   .tab-btn:hover { border-color: rgba(201,168,92,0.4); color: var(--text-chip); }
@@ -234,7 +236,7 @@
   .tr-sec { margin-top: 10px; }
   .tr-sec:first-of-type { margin-top: 0; }
   .tr-label { display: inline-block; font-size: 11px; font-weight: 700; letter-spacing: 1px; color: var(--gold-text); border: 1px solid rgba(201,168,92,0.45); border-radius: 999px; padding: 0 9px; margin-right: 8px; line-height: 1.7; }
-  .tarot-fortune { margin-top: 16px; padding: 14px 16px; background: rgba(201,168,92,0.07); border: 1px solid rgba(201,168,92,0.25); border-radius: 12px; font-size: 13px; line-height: 1.8; color: var(--text-soft); }
+  .tarot-fortune { white-space: pre-line; margin-top: 16px; padding: 14px 16px; background: rgba(201,168,92,0.07); border: 1px solid rgba(201,168,92,0.25); border-radius: 12px; font-size: 13px; line-height: 1.8; color: var(--text-soft); }
   .fortune-label { display: flex; align-items: center; gap: 5px; font-size: 11px; letter-spacing: 1.5px; text-transform: uppercase; color: var(--gold-label); font-weight: 600; margin-bottom: 7px; }
 
   .filter-head { display: flex; align-items: center; justify-content: space-between; }
@@ -296,6 +298,7 @@
   h1.title, .subtitle, .kicker, .w-title, .w-sub, .col-title, .brand-name, .rl-title, .c-name, .c-orig, .c-brand, .c-desc, .rl-brand, .tarot-name, .tarot-oracle, .tarot-fortune, .footer-text, .f-sect-title, .hint { transition: color .35s ease; }
   body, .panel, .card, .modal, .input, .fchip, .tab-btn { transition: background .3s, color .3s, border-color .3s; }
 </style>
+<script src="astronomy.min.js"></script>
 <script src="https://js.puter.com/v2/"></script>
 </head>
 <body>
@@ -883,18 +886,127 @@ function astroStars(moonIdx, phase) {
   r.overall = c(Math.round((r.work + r.money + r.love + r.health + base) / 5));
   return { stars: r, house: h, theme: ASTRO_HOUSES[d] };
 }
+// ── 行運對本命盤（astronomy-engine，MIT 授權，檔案放在 repo 內，不連外部服務）──────
+// 本命盤：1995-03-22 申時（取 16:00），台灣（UTC+8）。出生時間只影響本命月亮約 ±1°，不算上升與宮位。
+const NATAL_TIME = new Date(Date.UTC(1995, 2, 22, 8, 0, 0));
+const PLANETS = [
+  { key: "Sun", zh: "太陽", rule: "自我、活力、方向" },
+  { key: "Moon", zh: "月亮", rule: "情緒、身體狀態、安全感" },
+  { key: "Mercury", zh: "水星", rule: "溝通、思考、文書與交通" },
+  { key: "Venus", zh: "金星", rule: "感情、人緣、美感與花錢" },
+  { key: "Mars", zh: "火星", rule: "行動力、衝勁、衝突" },
+  { key: "Jupiter", zh: "木星", rule: "機會、擴張、好運" },
+  { key: "Saturn", zh: "土星", rule: "壓力、責任、紀律" },
+];
+const ASPECTS = [
+  { deg: 0, zh: "合相", sym: "☌", tone: 0 }, { deg: 60, zh: "六分相", sym: "⚹", tone: 1 },
+  { deg: 90, zh: "四分相", sym: "□", tone: -1 }, { deg: 120, zh: "三分相", sym: "△", tone: 1 },
+  { deg: 180, zh: "對分相", sym: "☍", tone: -1 },
+];
+// 行運行星的容許度與影響力：月亮最快、每天都在變；木土慢，影響長但當日權重低一點
+const TRANSIT_ORB = { Sun: 3, Moon: 6, Mercury: 3, Venus: 3, Mars: 3, Jupiter: 2, Saturn: 2 };
+const TRANSIT_W = { Sun: 0.6, Moon: 0.9, Mercury: 0.7, Venus: 0.8, Mars: 0.8, Jupiter: 0.7, Saturn: 0.7 };
+// 各行星主導的運勢面向（行運行星權重 1，被碰到的本命行星權重 0.5）
+const PLANET_AREAS = {
+  Sun: ["work", "health"], Moon: ["health", "love"], Mercury: ["work", "money"], Venus: ["love", "money"],
+  Mars: ["work", "health"], Jupiter: ["money", "work"], Saturn: ["work", "health"],
+};
+function eclLon(key, date) {
+  const t = Astronomy.MakeTime(date);
+  if (key === "Sun") return Astronomy.SunPosition(t).elon;
+  if (key === "Moon") return Astronomy.EclipticGeoMoon(t).lon;
+  return Astronomy.Ecliptic(Astronomy.GeoVector(key, t, true)).elon;
+}
+let NATAL = null;
+function natalChart() {
+  if (!NATAL) { NATAL = {}; PLANETS.forEach((p) => { NATAL[p.key] = eclLon(p.key, NATAL_TIME); }); }
+  return NATAL;
+}
+function signOf(lon) { return ZODIAC[Math.floor((((lon % 360) + 360) % 360) / 30)]; }
+function degIn(lon) { return Math.floor((((lon % 360) + 360) % 360) % 30); }
+function computeTransits(noon) {
+  const natal = natalChart();
+  const sky = {}, retro = [];
+  PLANETS.forEach((p) => {
+    sky[p.key] = eclLon(p.key, noon);
+    if (p.key !== "Sun" && p.key !== "Moon") {
+      const next = eclLon(p.key, new Date(noon.getTime() + 86400000));
+      if (((next - sky[p.key] + 540) % 360) - 180 < 0) retro.push(p.key);
+    }
+  });
+  const hits = [];
+  PLANETS.forEach((tp) => {
+    ["Sun", "Moon", "Mercury", "Venus", "Mars"].forEach((nk) => {
+      const diff = Math.abs(((sky[tp.key] - natal[nk] + 540) % 360) - 180);   // 0–180
+      const sep = 180 - diff;
+      ASPECTS.forEach((as) => {
+        const off = Math.abs(sep - as.deg), orb = TRANSIT_ORB[tp.key];
+        if (off <= orb) hits.push({ t: tp.key, n: nk, aspect: as, off, w: (1 - off / orb) * TRANSIT_W[tp.key] });
+      });
+    });
+  });
+  hits.sort((x, y) => y.w - x.w);
+  return { sky, natal, retro, hits };
+}
+// 合相的好壞看行星本身：金星木星偏吉、火星土星偏凶、其他中性偏吉
+function hitTone(h) {
+  if (h.aspect.deg !== 0) return h.aspect.tone;
+  if (h.t === "Venus" || h.t === "Jupiter") return 1;
+  if (h.t === "Mars" || h.t === "Saturn") return -1;
+  return 0.5;
+}
+function transitStars(tr, phase) {
+  const sum = { work: 0, money: 0, love: 0, health: 0 };
+  tr.hits.forEach((h) => {
+    let tone = hitTone(h);
+    if (tone < 0 && (h.t === "Venus" || h.t === "Jupiter")) tone = -0.5;   // 吉星的緊張相位比較溫和
+    const add = (k, m) => { sum[k] += tone * h.w * m; };
+    PLANET_AREAS[h.t].forEach((k) => add(k, 1));
+    PLANET_AREAS[h.n].forEach((k) => add(k, 0.5));
+  });
+  if (tr.retro.indexOf("Mercury") >= 0) { sum.work -= 0.5; sum.money -= 0.3; }
+  if (tr.retro.indexOf("Venus") >= 0) { sum.love -= 0.5; sum.money -= 0.3; }
+  if (tr.retro.indexOf("Mars") >= 0) { sum.work -= 0.4; sum.health -= 0.3; }
+  if (phase === "滿月") sum.health -= 0.3;
+  const c = (x) => Math.max(1, Math.min(5, Math.round(3 + x)));
+  const r = { work: c(sum.work), money: c(sum.money), love: c(sum.love), health: c(sum.health) };
+  const jup = tr.hits.filter((h) => h.t === "Jupiter" || h.t === "Sun").reduce((a, h) => a + hitTone(h) * h.w, 0);
+  r.overall = Math.max(1, Math.min(5, Math.round((r.work + r.money + r.love + r.health) / 4 + jup * 0.5)));
+  return r;
+}
+function hitLabel(h) {
+  const T = PLANETS.find((p) => p.key === h.t).zh, N = PLANETS.find((p) => p.key === h.n).zh;
+  return T + " " + h.aspect.sym + " 你的本命" + N;
+}
+
 function ensureAstro() {
   if (ST.astro && ST.astro.day === todayKey()) return;
   const now = new Date(); const noon = new Date(now.getFullYear(), now.getMonth(), now.getDate(), 12, 0, 0);
   const pos = astroPositions(noon);
-  const moonIdx = Math.floor(pos.moon / 30);
+  const phase = moonPhaseName(pos.elong);
+  let tr = null;
+  try { if (typeof Astronomy !== "undefined") tr = computeTransits(noon); } catch (e) { tr = null; }
+  const moonIdx = tr ? Math.floor(tr.sky.Moon / 30) : Math.floor(pos.moon / 30);
+  const house = ((moonIdx - MY_SIGN) % 12 + 12) % 12;
+  const stars = tr ? transitStars(tr, phase) : astroStars(moonIdx, phase).stars;
   const saved0 = (ST.astroSaved && ST.astroSaved.day === todayKey()) ? ST.astroSaved : null;
-  const saved = saved0 && saved0.v === 2 ? saved0 : (saved0 ? { perfumeId: saved0.perfumeId, fortune: "" } : null);   // 舊版沒有星等的運勢重寫一次
+  const saved = saved0 && saved0.v === 3 ? saved0 : (saved0 ? { perfumeId: saved0.perfumeId, fortune: "" } : null);   // 舊版運勢重寫一次
   let perfume = saved && saved.perfumeId ? ST.collection.find((c) => c.id === saved.perfumeId) : null;
   if (!perfume) perfume = perfumeForElement(ZODIAC[moonIdx].el, "astro" + todayKey() + moonIdx);
-  ST.astro = { day: todayKey(), moonIdx, phase: moonPhaseName(pos.elong), aspect: astroAspect(moonIdx), rating: astroStars(moonIdx, moonPhaseName(pos.elong)), perfume,
+  ST.astro = { day: todayKey(), moonIdx, phase, tr, aspect: astroAspect(moonIdx),
+    rating: { stars, house: house + 1, theme: ASTRO_HOUSES[house] }, perfume,
     fortune: saved ? saved.fortune : "", aiSource: !!(saved && saved.fortune), aiTried: !!(saved && saved.fortune) };
   generateAstroFortune();
+}
+// AI 失敗時的備用文字：依今天最強的相位組出來
+function astroFallbackText(a) {
+  if (!a.tr || !a.tr.hits.length) return a.aspect.text;
+  return a.tr.hits.slice(0, 2).map((h) => {
+    const T = PLANETS.find((p) => p.key === h.t), N = PLANETS.find((p) => p.key === h.n);
+    const tone = hitTone(h);
+    const area = T.key === N.key ? T.rule.split("、").slice(0, 2).join("和") : T.rule.split("、")[0] + "和" + N.rule.split("、")[0];
+    return "行運" + T.zh + h.aspect.zh + "你的本命" + N.zh + "，" + area + (tone > 0 ? "順暢，適合主動。" : tone < 0 ? "有拉扯，步調放慢、先別硬碰。" : "是今天的焦點。");
+  }).join("");
 }
 // 呼叫 Puter.js 的 AI：模型由強到弱依序嘗試，前面的用不了就往後退
 const AI_MODELS = ["gpt-5.4", "gpt-5.4-mini", "gpt-5.4-nano"];
@@ -919,20 +1031,32 @@ async function generateAstroFortune() {
   a.aiTried = true;
   if (typeof puter === "undefined" || !puter.ai || !puter.ai.chat) return;
   a.aiLoading = true; render();
-  const p = a.perfume; const mz = ZODIAC[a.moonIdx];
-  const perfumeDesc = p ? (p.nameZh + "（" + (p.brand || "") + "），香調有" + allNotesOf(p)) : "（暫無對應香水）";
-  const prompt = "你是一位溫柔而有洞察力的占星師，正在為一位香水愛好者解讀今日運勢。\n" +
-    "對方的太陽星座：" + ZODIAC[MY_SIGN].zh + "\n" +
-    "今日實際星象：月亮在" + mz.zh + "（" + TAROT_ELEMENTS[mz.el].zh + "象），月相是" + a.phase + "\n" +
-    "月亮與對方太陽星座的關係：" + a.aspect.name + "。" + a.aspect.text + "\n" +
-    "月亮落在對方的第 " + a.rating.house + " 宮，主題是" + a.rating.theme + "\n" +
-    "今日星等（滿分 5）：整體 " + a.rating.stars.overall + "、工作 " + a.rating.stars.work + "、金錢 " + a.rating.stars.money + "、感情 " + a.rating.stars.love + "、健康 " + a.rating.stars.health + "\n" +
-    "依今日月亮元素挑選的香水：" + perfumeDesc + "\n\n" +
-    "請用繁體中文，以占星師對來訪者說話的口吻，寫一段 100～140 字的今日運勢。內容要根據上面的星象與星等，語氣要跟星等一致（星等低就提醒要留意的地方，星等高就鼓勵），不要編造其他行星位置。把星象的訊息和這款香水的氣味意象自然連結，給出今天的指引。只回傳那段話本身，不要前言、標題或引號。";
-  const text = await aiChat(prompt, { temperature: 0.9, max_tokens: 400 });
+  const p = a.perfume; const mz = ZODIAC[a.moonIdx]; const rs = a.rating.stars;
+  let sky = "", natal = "", hits = "（今天沒有落在容許度內的主要相位）", retro = "無";
+  if (a.tr) {
+    sky = PLANETS.map((x) => x.zh + "在" + signOf(a.tr.sky[x.key]).zh + degIn(a.tr.sky[x.key]) + "°").join("、");
+    natal = PLANETS.map((x) => x.zh + "在" + signOf(a.tr.natal[x.key]).zh + degIn(a.tr.natal[x.key]) + "°").join("、");
+    if (a.tr.hits.length) hits = a.tr.hits.slice(0, 6).map((h, i) => {
+      const T = PLANETS.find((q) => q.key === h.t), N = PLANETS.find((q) => q.key === h.n);
+      return (i + 1) + ". 行運" + T.zh + "（" + T.rule + "）" + h.aspect.zh + "本命" + N.zh + "（" + N.rule + "），誤差 " + h.off.toFixed(1) + "°";
+    }).join("\n");
+    if (a.tr.retro.length) retro = a.tr.retro.map((k) => PLANETS.find((q) => q.key === k).zh + "逆行").join("、");
+  }
+  const prompt = "你是一位執業多年的西洋占星師，解讀具體、直接、不講空話。請依下面算好的實際星象，為來訪者寫今日運勢。\n\n" +
+    "來訪者本命盤（太陽" + ZODIAC[MY_SIGN].zh + "）：" + natal + "\n" +
+    "今日天空：" + sky + "\n" +
+    "今日行運相位（依影響力排序）：\n" + hits + "\n" +
+    "逆行：" + retro + "\n" +
+    "月亮在" + mz.zh + "，月相" + a.phase + "，落在以太陽星座起算的第 " + a.rating.house + " 宮（" + a.rating.theme + "）\n" +
+    "今日星等（滿分 5）：整體 " + rs.overall + "、工作 " + rs.work + "、金錢 " + rs.money + "、感情 " + rs.love + "、健康 " + rs.health + "\n\n" +
+    "請用繁體中文、台灣用語寫，總長 200～280 字，分成四段，每段開頭用下面的標題，段與段之間換行：\n" +
+    "【整體】點出今天影響最大的一兩個相位，說它們在你身上會怎麼表現。\n" +
+    "【工作】【感情】【金錢】各寫具體情境與一個建議，要對應到相關的相位（例如金星管感情和花錢、水星管溝通與文書、火星管衝勁與衝突），語氣要跟該項星等一致。\n\n" +
+    "規則：只能使用上面列出的星象，不要編造其他行星或相位。要點名相位（例如「金星三分你的本命月亮」）。不要用「或許」「可能」「也許」這類含糊的詞，不要用破折號。不要提到香水或氣味。不要前言、結語或引號。";
+  const text = await aiChat(prompt, { temperature: 0.7, max_tokens: 800 });
   if (text && ST.astro === a) {
     a.fortune = text; a.aiSource = true;
-    ST.astroSaved = { day: a.day, v: 2, fortune: text, perfumeId: p ? p.id : null };
+    ST.astroSaved = { day: a.day, v: 3, fortune: text, perfumeId: p ? p.id : null };
     try { await store.put({ id: "astro_today", _marker: true, value: ST.astroSaved }); } catch (e) {}
   }
   a.aiLoading = false;
@@ -1388,16 +1512,19 @@ function render() {
       '<button class="lucky-btn' + (ST.luckyMode === "astro" ? ' on' : '') + '" data-lucky="astro">星座</button></div>';
     let sub = "抽一張塔羅牌，選想看的主題。";
     if (ST.luckyMode === "astro") {
-      sub = "依今天月亮實際所在的星座，對照你的太陽星座" + ZODIAC[MY_SIGN].zh + "，由月亮的元素挑出今日香水。";
+      sub = "依今天七顆行星的實際位置，對照你的本命盤，算出今日運勢。今日香水由月亮所在星座的元素挑選。";
       if (!ST.collection.length) {
         body = '<div class="hint">先新增幾款香水，才能為你挑出今日之選。</div>';
       } else if (ST.astro) {
         const a = ST.astro; const mz = ZODIAC[a.moonIdx]; const p = a.perfume;
         const fLabel = a.aiLoading ? "占星師解讀中…" : "今日運勢";
-        const fortune = '<div class="tarot-fortune"><div class="fortune-label">' + fLabel + '</div>' + esc(a.fortune || a.aspect.text) + '</div>';
+        const fortune = '<div class="tarot-fortune"><div class="fortune-label">' + fLabel + '</div>' + esc(a.fortune || astroFallbackText(a)) + '</div>';
         const starRow = (label, n) => '<div class="astro-star-row"><span>' + label + '</span><span class="st">' + "★".repeat(n) + '<i>' + "★".repeat(5 - n) + '</i></span></div>';
         const rs = a.rating.stars;
         const starsHTML = '<div class="astro-stars">' + starRow("整體", rs.overall) + starRow("工作", rs.work) + starRow("金錢", rs.money) + starRow("感情", rs.love) + starRow("健康", rs.health) +
+          (a.tr && (a.tr.hits.length || a.tr.retro.length) ? '<div class="astro-hits"><div class="f-sect-title">今日重點星象</div>' +
+            a.tr.hits.slice(0, 3).map((h) => '<span class="hit-pill">' + esc(hitLabel(h)) + '</span>').join("") +
+            a.tr.retro.map((k) => '<span class="hit-pill">' + PLANETS.find((q) => q.key === k).zh + '逆行</span>').join("") + '</div>' : '') +
           '<div class="astro-house">月亮走到你的第 ' + a.rating.house + ' 宮：' + a.rating.theme + '</div></div>';
         let pf = '<div class="hint">收藏裡還沒有適合的香水。</div>';
         if (p) {
