@@ -961,6 +961,27 @@ function hitTone(h) {
   if (h.t === "Mars" || h.t === "Saturn") return -1;
   return 0.5;
 }
+// 太陽星座宮位（星座專欄的看法）：以太陽星座為第 1 宮，看行星今天走進哪一宮
+const HOUSE_AREAS = {
+  1: { health: 1 }, 2: { money: 1 }, 3: { work: 0.5 }, 4: { health: 0.5 }, 5: { love: 1 }, 6: { work: 1, health: 0.5 },
+  7: { love: 1 }, 8: { money: 0.5, love: 0.5 }, 9: { work: 0.3 }, 10: { work: 1 }, 11: { money: 0.5, love: 0.3 }, 12: { health: 0.5 },
+};
+// 月亮每兩天半換宮，權重最高；木星、土星一待就是一年，權重壓低，避免蓋掉每天的變化
+const PLANET_HOUSE_W = { Moon: 0.6, Sun: 0.25, Mercury: 0.15, Venus: 0.35, Mars: 0.2, Jupiter: 0.25, Saturn: -0.25 };
+function solarHouseOf(lon) { return ((Math.floor((((lon % 360) + 360) % 360) / 30) - MY_SIGN) % 12 + 12) % 12 + 1; }
+function solarHouseEffects(tr) {
+  const sum = { work: 0, money: 0, love: 0, health: 0 }, notes = [];
+  PLANETS.forEach((p) => {
+    const h = solarHouseOf(tr.sky[p.key]);
+    let w = PLANET_HOUSE_W[p.key];
+    if (p.key === "Mars" && (h === 4 || h === 7 || h === 12)) w = -0.2;    // 火星進家庭、伴侶、獨處宮容易起摩擦或耗神
+    if (p.key === "Moon" && h === 12) w = -0.3;                              // 月亮在第 12 宮：精神與體力偏低
+    if (tr.retro.indexOf(p.key) >= 0 && w > 0) w *= 0.5;                     // 逆行時助力減半
+    Object.entries(HOUSE_AREAS[h]).forEach(([k, m]) => { sum[k] += w * m; });
+    notes.push({ key: p.key, house: h, w });
+  });
+  return { sum, notes };
+}
 function transitStars(tr, phase) {
   const sum = { work: 0, money: 0, love: 0, health: 0 };
   tr.hits.forEach((h) => {
@@ -974,10 +995,14 @@ function transitStars(tr, phase) {
   if (tr.retro.indexOf("Venus") >= 0) { sum.love -= 0.5; sum.money -= 0.3; }
   if (tr.retro.indexOf("Mars") >= 0) { sum.work -= 0.4; sum.health -= 0.3; }
   if (phase === "滿月") sum.health -= 0.3;
+  // 加上太陽星座宮位的影響（和星座專欄同一套看法），與個人相位一起計分
+  const sh = solarHouseEffects(tr);
+  Object.keys(sum).forEach((k) => { sum[k] += sh.sum[k]; });
   const c = (x) => Math.max(1, Math.min(5, Math.round(3 + x)));
   const r = { work: c(sum.work), money: c(sum.money), love: c(sum.love), health: c(sum.health) };
   const jup = tr.hits.filter((h) => h.t === "Jupiter" || h.t === "Sun").reduce((a, h) => a + hitTone(h) * h.w, 0);
-  r.overall = Math.max(1, Math.min(5, Math.round((r.work + r.money + r.love + r.health) / 4 + jup * 0.5)));
+  const good = sh.notes.filter((n) => (n.key === "Jupiter" || n.key === "Sun") && [1, 9, 10].indexOf(n.house) >= 0 && n.w > 0).length * 0.3;
+  r.overall = Math.max(1, Math.min(5, Math.round((r.work + r.money + r.love + r.health) / 4 + jup * 0.5 + good)));
   return r;
 }
 function hitBadge(h) {
@@ -1000,7 +1025,7 @@ function ensureAstro() {
   const house = ((moonIdx - MY_SIGN) % 12 + 12) % 12;
   const stars = tr ? transitStars(tr, phase) : astroStars(moonIdx, phase).stars;
   const saved0 = (ST.astroSaved && ST.astroSaved.day === todayKey()) ? ST.astroSaved : null;
-  const saved = saved0 && saved0.v === 3 ? saved0 : (saved0 ? { perfumeId: saved0.perfumeId, fortune: "" } : null);   // 舊版運勢重寫一次
+  const saved = saved0 && saved0.v === 4 ? saved0 : (saved0 ? { perfumeId: saved0.perfumeId, fortune: "" } : null);   // 舊版運勢重寫一次
   let perfume = saved && saved.perfumeId ? ST.collection.find((c) => c.id === saved.perfumeId) : null;
   if (!perfume) perfume = perfumeForElement(ZODIAC[moonIdx].el, "astro" + todayKey() + moonIdx);
   ST.astro = { day: todayKey(), moonIdx, phase, tr, aspect: astroAspect(moonIdx),
@@ -1057,16 +1082,17 @@ async function generateAstroFortune() {
     "今日天空：" + sky + "\n" +
     "今日行運相位（依影響力排序）：\n" + hits + "\n" +
     "逆行：" + retro + "\n" +
-    "月亮在" + mz.zh + "，月相" + a.phase + "，落在以太陽星座起算的第 " + a.rating.house + " 宮（" + a.rating.theme + "）\n" +
+    "以太陽星座為第 1 宮的宮位（星座專欄的看法）：" + (a.tr ? PLANETS.map((x) => x.zh + "在第 " + solarHouseOf(a.tr.sky[x.key]) + " 宮（" + ASTRO_HOUSES[solarHouseOf(a.tr.sky[x.key]) - 1] + "）").join("、") : "") + "\n" +
+    "月相" + a.phase + "\n" +
     "今日星等（滿分 5）：整體 " + rs.overall + "、工作 " + rs.work + "、金錢 " + rs.money + "、感情 " + rs.love + "、健康 " + rs.health + "\n\n" +
     "請用繁體中文、台灣用語寫，總長 200～280 字，分成四段，每段開頭用下面的標題，段與段之間換行：\n" +
-    "【整體】點出今天影響最大的一兩個相位，說它們在你身上會怎麼表現。\n" +
-    "【工作】【感情】【金錢】各寫具體情境與一個建議，要對應到相關的相位（例如金星管感情和花錢、水星管溝通與文書、火星管衝勁與衝突），語氣要跟該項星等一致。\n\n" +
-    "規則：只能使用上面列出的星象，不要編造其他行星或相位。要點名相位（例如「金星三分你的本命月亮」）。不要用「或許」「可能」「也許」這類含糊的詞，不要用破折號。不要提到香水或氣味。不要前言、結語或引號。";
+    "【整體】點出今天影響最大的一兩個相位，再帶到行星落在哪一宮帶來的氛圍。\n" +
+    "【工作】【感情】【金錢】各寫具體情境與一個建議，要對應到相關的相位或宮位（例如金星管感情和花錢、水星管溝通與文書、火星管衝勁與衝突，第 5、7 宮管感情，第 2、8 宮管金錢，第 6、10 宮管工作），語氣要跟該項星等一致。\n\n" +
+    "規則：只能使用上面列出的星象，不要編造其他行星、相位或宮位。要點名相位（例如「金星三分你的本命月亮」）。不要用「或許」「可能」「也許」這類含糊的詞，不要用破折號。不要提到香水或氣味。不要前言、結語或引號。";
   const text = await aiChat(prompt, { temperature: 0.7, max_tokens: 800 });
   if (text && ST.astro === a) {
     a.fortune = text; a.aiSource = true;
-    ST.astroSaved = { day: a.day, v: 3, fortune: text, perfumeId: p ? p.id : null };
+    ST.astroSaved = { day: a.day, v: 4, fortune: text, perfumeId: p ? p.id : null };
     try { await store.put({ id: "astro_today", _marker: true, value: ST.astroSaved }); } catch (e) {}
   }
   a.aiLoading = false;
@@ -1535,7 +1561,11 @@ function render() {
           (a.tr && (a.tr.hits.length || a.tr.retro.length) ? '<div class="astro-hits"><div class="f-sect-title">今日重點星象</div>' +
             a.tr.hits.slice(0, 3).map((h) => '<div class="astro-hit"><span>' + esc(hitLabel(h)) + '</span>' + hitBadge(h) + '</div>').join("") +
             a.tr.retro.map((k) => '<div class="astro-hit"><span>' + PLANETS.find((q) => q.key === k).zh + '逆行</span></div>').join("") + '</div>' : '') +
-          '<div class="astro-house">月亮走到你的第 ' + a.rating.house + ' 宮：' + a.rating.theme + '</div></div>';
+          (a.tr ? '<div class="astro-house">' + (() => {
+            const by = {};
+            PLANETS.forEach((x) => { const h = solarHouseOf(a.tr.sky[x.key]); (by[h] = by[h] || []).push(x.zh); });
+            return Object.keys(by).sort((x, y) => x - y).map((h) => by[h].join("、") + "在第 " + h + " 宮（" + ASTRO_HOUSES[h - 1] + "）").join("<br>");
+          })() + '</div>' : '<div class="astro-house">月亮走到你的第 ' + a.rating.house + ' 宮：' + a.rating.theme + '</div>') + '</div>';
         let pf = '<div class="hint">收藏裡還沒有適合的香水。</div>';
         if (p) {
           const orig = p.name && p.name !== p.nameZh ? '<span class="rl-orig">' + esc(p.name) + '</span>' : "";
