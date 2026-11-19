@@ -1100,20 +1100,58 @@ async function generateAstroFortune() {
 }
 
 // 依牌的元素，從收藏挑一款搭的香水（在所有命中的款中加權隨機，避免每次都同一款）
+// ── 依元素挑今日香水 ──────────────────────────────────────
+// 元素對應心情標註（TAG_PROFILE）：火＝溫暖包覆、性感神秘；水＝沉靜療癒、浪漫；風＝清新提神、優雅乾淨；土＝沉穩木質。
+// 再乘上當季適配度，只從最符合的前 8 款裡加權抽。
+function currentSeasonKey() {
+  const m = new Date().getMonth() + 1;   // 台灣：3–5 春、6–9 夏、10–11 秋、12–2 冬
+  return m >= 3 && m <= 5 ? "spring" : m >= 6 && m <= 9 ? "summer" : m >= 10 && m <= 11 ? "autumn" : "winter";
+}
+function woodyScore(p) {
+  const kws = ["檀香","雪松","木","廣藿香","香根草","岩蘭草","苔","沉香","烏木","杉","絲柏","乳香"];
+  const late = ((p.notes && p.notes.middle) || []).concat((p.notes && p.notes.base) || []).join(" ");
+  const n = kws.filter((k) => late.indexOf(k) >= 0).length;
+  return n >= 3 ? 3 : n === 2 ? 2 : n === 1 ? 1 : 0;
+}
+function elementAffinity(p, element) {
+  const t = tagProfile(p);
+  if (!t) {   // 沒有標註的新款：退回香調關鍵字（命中數換成 0–3）
+    const el = TAROT_ELEMENTS[element] || TAROT_ELEMENTS.aether, all = allNotesOf(p);
+    return Math.min(3, el.like.filter((kw) => all.indexOf(kw) >= 0).length);
+  }
+  if (element === "fire") return Math.max(t.warm, t.sensual);
+  if (element === "water") return Math.max(t.calm, t.date * 0.6);
+  if (element === "air") return Math.max(t.fresh, t.clean * 0.8);
+  if (element === "earth") return Math.max(Math.min(woodyScore(p), 4 - t.sensual), t.calm * 0.7, t.formal * 0.8);   // 性感神秘型的木質不算沉穩
+  return Math.max(t.calm, t.sensual);   // aether
+}
+function seededRand(seedStr) {
+  let h = 2166136261;
+  for (let i = 0; i < seedStr.length; i++) { h ^= seedStr.charCodeAt(i); h = Math.imul(h, 16777619) >>> 0; }
+  return (h % 100000) / 100000;
+}
 function perfumeForElement(element, seedStr) {
   if (!ST.collection.length) return null;
-  const el = TAROT_ELEMENTS[element] || TAROT_ELEMENTS.aether;
+  const si = SEASON_INDEX[currentSeasonKey()];
   const scored = ST.collection.map((p) => {
-    const all = allNotesOf(p);
-    let s = 0; el.like.forEach((kw) => { if (all.indexOf(kw) >= 0) s++; });
-    return { p, s };
+    const v = seasonVector(p);
+    const fit = v ? v[si] : 0.5;
+    return { p, aff: elementAffinity(p, element), fit };
   });
-  // 命中（score>0）的候選池：依命中數加權，命中越多被選中機率越高，但不鎖死最高分那款
-  const pool = [];
-  scored.forEach((x) => { if (x.s > 0) { for (let i = 0; i < x.s; i++) pool.push(x.p); } });
-  if (pool.length) return seededPick(pool, seedStr);
-  // 完全沒命中 → 從全部收藏挑
-  return seededPick(ST.collection, seedStr);
+  const pickFrom = (list) => {
+    if (!list.length) return null;
+    list.sort((x, y) => y.w - x.w);
+    const top = list.slice(0, 8);
+    const total = top.reduce((a, x) => a + x.w, 0);
+    let r = seededRand(seedStr) * total;
+    for (const x of top) { r -= x.w; if (r <= 0) return x.p; }
+    return top[top.length - 1].p;
+  };
+  // 依序放寬：元素符合且適合當季 → 元素沾得上邊且季節還行 → 只看季節 → 全部收藏
+  return pickFrom(scored.filter((x) => x.aff >= 2 && x.fit >= SEASON_MIN).map((x) => ({ p: x.p, w: x.aff * x.fit })))
+    || pickFrom(scored.filter((x) => x.aff >= 1 && x.fit >= 0.4).map((x) => ({ p: x.p, w: x.aff * x.fit })))
+    || pickFrom(scored.filter((x) => x.fit >= SEASON_MIN).map((x) => ({ p: x.p, w: x.fit })))
+    || seededPick(ST.collection, seedStr);
 }
 
 async function drawTarot(force) {
