@@ -519,7 +519,7 @@ const LIBRARY = [
   { nameZh:"狂戀苦艾", name:"Fou d'Absinthe", brand:"L'Artisan Parfumeur", year:"2006", top:["黑醋栗","當歸","苦艾"], middle:["薑","廣藿香","胡椒","肉豆蔻","八角","丁香"], base:["冷杉","焚香","松樹"], description:"苦艾酒的致幻綠，松針辛香層層堆疊，草本的苦與神祕令人微醺。", longevity:2, verified:true },
   { nameZh:"一生之鹽", name:"Le Sel d'Issey", brand:"Issey Miyake", year:"2024", top:["海藻","橡木苔"], middle:["生薑","鹽"], base:["香根草","雪松"], description:"以無味的鹽為靈魂，海藻橡木苔的濕鹹，生薑昇華成海風，落回大地木質。", longevity:2, verified:true },
   { nameZh:"柑橘綠茶", name:"Mandarin & Green Tea", brand:"Acca Kappa", year:"2019", top:["橙","橘子","葡萄柚","佛手柑"], middle:["玫瑰","綠茶"], base:["麝香"], description:"地中海仲夏的柑橘綠茶，明亮多汁的假期氣息，裝在瓶子裡的豔陽午後。", longevity:1, verified:true },
-  { nameZh:"001 男性淡香精", name:"LOEWE 001 Man Eau de Parfum", brand:"Loewe", year:"", top:["絲柏"], middle:["胡蘿蔔籽"], base:["麝香"], description:"官方僅公布三個主調，未拆前中後。貼膚的奶感麝香木質，胡蘿蔔籽帶出柔軟粉質。與淡香水版為不同配方。", longevity:2, verified:true },
+  { nameZh:"001 男性淡香精", name:"LOEWE 001 Man Eau de Parfum", brand:"Loewe", year:"", top:["絲柏"], middle:["胡蘿蔔籽"], base:["麝香"], description:"官方僅公布三個主調，未拆前中後。貼膚的奶感麝香木質，胡蘿蔔籽帶出柔軟粉質。與淡香水版為不同配方，這支是淡香精。", longevity:2, verified:true },
   { nameZh:"奇蹟天光", name:"LOEWE AIRE Sutileza", brand:"Loewe", year:"", top:["蜜橘","梨","紅醋栗"], middle:["茉莉","鈴蘭","木蘭"], base:["檀香","香根草","麝香"], description:"馬德里奇蹟天光。青綠柑香帶入，中段葛拉斯茉莉與鈴蘭，尾韻回到木質。", longevity:2, verified:true },
   { nameZh:"鈴蘭", name:"Suzuran", brand:"SHIRO", year:"2025", top:["洋梨","風信子","佛手柑"], middle:["鈴蘭","木蘭","茉莉"], base:["檀香","琥珀","白麝香"], description:"韓國限定。清透果香接柔嫩白花，尾韻乾淨帶暖。鈴蘭寓意帶來幸福。", longevity:2, verified:true },
   { nameZh:"SALT & WAVES 身體噴霧", name:"SALT & WAVES Body Mist", brand:"SHIRO", year:"", top:["檸檬","佛手柑","海鹽"], middle:["鈴蘭","茉莉","小蒼蘭"], base:["麝香","琥珀","檀香"], description:"夏季限定涼感身體噴霧。香調同香水版，濃度較低、留香約一至兩小時，適合大面積補噴。", longevity:1, verified:true },
@@ -760,6 +760,16 @@ function tagProfile(p) {
   const row = TAG_PROFILE[key]; if (!row) return null;
   const o = {}; TAG_KEYS.forEach((k, i) => { o[k] = row[i]; });
   return o;
+}
+
+// 濃度：淡香精（EDP）、淡香水（EDT）、古龍水（EDC）、身體噴霧。查不到的款不填，畫面上就不顯示。
+const CONC_PROFILE = {
+  "公鹿": "淡香精", "狐狸": "淡香精", "獵犬": "淡香精", "羚羊": "淡香精", "公牛": "淡香精", "犀牛": "淡香精", "英國梨與小蒼蘭": "古龍水", "Pure": "淡香精", "Savon": "淡香精", "島嶼青蕨": "淡香精", "高山包種": "淡香精", "凍頂烏龍": "淡香精", "冥府之路彼岸花": "淡香精", "租賃心臟": "淡香精", "過度換氣": "淡香精", "未付思緒": "淡香精", "雪盲症": "淡香精", "妄聽症": "淡香精", "失語症": "淡香精", "狂戀苦艾": "淡香精", "一生之鹽": "淡香水", "柑橘綠茶": "淡香精", "001 男性淡香精": "淡香精", "奇蹟天光": "淡香水", "鈴蘭": "淡香精", "SALT & WAVES 身體噴霧": "身體噴霧", "白茶": "淡香精", "No.39 Robe White": "淡香精", "晶豔": "淡香水", "玫瑰金漾 綻放喜悅": "淡香精", "Miss Dior 香氛": "淡香精", "Mystery for Him": "淡香精", "Green Sandalwood": "淡香精", "茶之外": "淡香精", "淘氣大野狼": "淡香水", "黑澤": "淡香水", "黑澤運動版": "淡香水", "黑胡桃木": "淡香水", "紳藍時尚": "淡香水", "慵懶早晨": "淡香水", "傾城之魅運動": "淡香水", "甦醒森林": "古龍水", "壁爐火光": "淡香水", "北國雪松精粹": "淡香精", "Club de Nuit Sillage": "淡香精", "玫瑰之水": "淡香水", "重構本我": "淡香精"
+};
+function concOf(p) {
+  if (p.conc) return p.conc;
+  const key = String(p.nameZh || "").replace(/（[^）]*）/g, "").trim();
+  return CONC_PROFILE[key] || "";
 }
 
 // ── 睡前／侍寢香適合度 ──────────────────────────────────
@@ -1468,7 +1478,7 @@ function render() {
       const fav = !!item.favorite;
       return '<div class="card"><div class="card-actions"><button class="icon-btn' + (fav ? ' fav-on' : '') + '" data-fav="' + item.id + '" title="' + (fav ? '取消我的最愛' : '加入我的最愛') + '">' + IC.heart(13, fav ? "#BC6474" : "currentColor", fav ? "#BC6474" : "none") + '</button><button class="icon-btn" data-edit="' + item.id + '">' + IC.pencil() + '</button><button class="icon-btn danger" data-del="' + item.id + '">' + IC.trash() + '</button></div>' +
         '<div class="card-img">' + IC.droplet(24) + '</div>' +
-        '<div class="c-brand">' + esc(item.brand || "—") + (item.year ? ' · ' + esc(item.year) : '') + '</div>' +
+        '<div class="c-brand">' + esc(item.brand || "—") + (item.year ? ' · ' + esc(item.year) : '') + (concOf(item) ? ' · ' + esc(concOf(item)) : '') + '</div>' +
         '<div class="c-name">' + esc(item.nameZh) + '</div><div class="c-orig">' + esc(item.name) + '</div>' + desc + pyramidHTML(item.notes, true) + '</div>';
     };
     if (ST.collectionBrand === "__fav__") {
@@ -1517,7 +1527,7 @@ function render() {
         const p = r.perfume;
         const why = r.reasons.length ? '<div class="rec-hits">符合：' + r.reasons.map((m) => '<span class="hit-pill">' + esc(m) + '</span>').join("") + '</div>' : "";
         const orig = p.name && p.name !== p.nameZh ? '<span class="rl-orig">' + esc(p.name) + '</span>' : "";
-        return '<div class="rec-row"><div class="rl-rank">' + (i + 1) + '</div><div class="rl-body"><div class="rl-title">' + esc(p.nameZh) + ' ' + orig + '</div><div class="rl-brand">' + esc(p.brand || "—") + '</div>' + why + pyramidHTML(p.notes, true) + '</div></div>';
+        return '<div class="rec-row"><div class="rl-rank">' + (i + 1) + '</div><div class="rl-body"><div class="rl-title">' + esc(p.nameZh) + ' ' + orig + '</div><div class="rl-brand">' + esc(p.brand || "—") + (concOf(p) ? ' · ' + esc(concOf(p)) : '') + '</div>' + why + pyramidHTML(p.notes, true) + '</div></div>';
       }).join("");
       resultHTML = '<div class="rec-list"><div class="rec-head"><span class="rec-tag">' + IC.sparkles() + (fr.hasScoring ? ' 為你推薦' : ' 搜尋結果') + '</span><span class="rec-count">' + fr.list.length + ' 款</span></div>' + rows + '</div>';
     }
@@ -1574,7 +1584,7 @@ function render() {
       let pf = '<div class="hint">收藏裡還沒有適合的香水。</div>';
       if (p) {
         const orig = p.name && p.name !== p.nameZh ? '<span class="rl-orig">' + esc(p.name) + '</span>' : "";
-        pf = '<div class="tarot-perfume"><div class="rec-tag">' + IC.sparkles() + ' 今日幸運香水</div><div class="rec-name">' + esc(p.nameZh) + ' ' + orig + '</div><div class="rl-brand">' + esc(p.brand || "—") + '</div>' + pyramidHTML(p.notes, true) + '</div>';
+        pf = '<div class="tarot-perfume"><div class="rec-tag">' + IC.sparkles() + ' 今日幸運香水</div><div class="rec-name">' + esc(p.nameZh) + ' ' + orig + '</div><div class="rl-brand">' + esc(p.brand || "—") + (concOf(p) ? ' · ' + esc(concOf(p)) : '') + '</div>' + pyramidHTML(p.notes, true) + '</div>';
       }
       const src = "";
       body = '<div class="tarot-result"><div class="tarot-card front' + (t.reversed ? ' reversed' : '') + '">' +
@@ -1608,7 +1618,7 @@ function render() {
         let pf = '<div class="hint">收藏裡還沒有適合的香水。</div>';
         if (p) {
           const orig = p.name && p.name !== p.nameZh ? '<span class="rl-orig">' + esc(p.name) + '</span>' : "";
-          pf = '<div class="tarot-perfume"><div class="rec-tag">' + IC.sparkles() + ' 今日幸運香水</div><div class="rec-name">' + esc(p.nameZh) + ' ' + orig + '</div><div class="rl-brand">' + esc(p.brand || "—") + '</div>' + pyramidHTML(p.notes, true) + '</div>';
+          pf = '<div class="tarot-perfume"><div class="rec-tag">' + IC.sparkles() + ' 今日幸運香水</div><div class="rec-name">' + esc(p.nameZh) + ' ' + orig + '</div><div class="rl-brand">' + esc(p.brand || "—") + (concOf(p) ? ' · ' + esc(concOf(p)) : '') + '</div>' + pyramidHTML(p.notes, true) + '</div>';
         }
         body = '<div class="tarot-result"><div class="tarot-card front">' +
           '<div class="astro-glyph">' + mz.glyph + '</div>' +
