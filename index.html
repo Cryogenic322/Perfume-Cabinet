@@ -426,12 +426,36 @@ function tarotCardByName(name) {
   return TAROT_DECK.find((c) => c.name === n) || null;
 }
 // 內建解牌資料庫（tarot-data.json，同站載入，不經第三方）
-let TAROT_DB = null, TAROT_DB_LOADING = null;
+let TAROT_DB = null, TAROT_DB_LOADING = null, TAROT_DB_ERROR = "";
+const TAROT_DB_VERSION = "2026-11-17";   // 改了 tarot-data.json 就換這個字串，裝置上的快取會自動更新
+function tarotDataURL() {
+  // 不管網址結尾有沒有斜線、有沒有 index.html，都指向同一個資料夾裡的 tarot-data.json
+  let path = location.pathname;
+  if (/\/[^/]+\.[a-z0-9]+$/i.test(path)) path = path.replace(/[^/]*$/, "");
+  else if (!path.endsWith("/")) path += "/";
+  return path + "tarot-data.json?v=" + TAROT_DB_VERSION;
+}
 function loadTarotDB() {
   if (TAROT_DB) return Promise.resolve(TAROT_DB);
   if (!TAROT_DB_LOADING) {
-    TAROT_DB_LOADING = fetch("tarot-data.json").then((r) => r.json()).then((d) => { TAROT_DB = d; return d; })
-      .catch(() => { TAROT_DB_LOADING = null; return null; });
+    TAROT_DB_LOADING = (async () => {
+      for (let i = 0; i < 3; i++) {   // 失敗自動重試三次（手機剛喚醒時網路常常還沒接上）
+        try {
+          const r = await fetch(tarotDataURL(), { cache: "no-cache" });
+          if (!r.ok) throw new Error("HTTP " + r.status);
+          const d = await r.json();
+          if (!d || !d["The Fool"]) throw new Error("資料內容不完整");
+          TAROT_DB = d; TAROT_DB_ERROR = "";
+          try { await store.put({ id: "tarot_db", _marker: true, v: TAROT_DB_VERSION, value: d }); } catch (e) {}
+          return d;
+        } catch (e) {
+          TAROT_DB_ERROR = String(e && e.message || e);
+          await new Promise((res) => setTimeout(res, 800 * (i + 1)));
+        }
+      }
+      TAROT_DB_LOADING = null;
+      return null;
+    })();
   }
   return TAROT_DB_LOADING;
 }
@@ -1575,12 +1599,13 @@ function render() {
       const up = "";
       const topicLabel = (TAROT_TOPICS.find((x) => x.key === ST.tarotTopic) || TAROT_TOPICS[0]).label;
       const chips = TAROT_TOPICS.map((x) => '<button class="lucky-btn' + (ST.tarotTopic === x.key ? ' on' : '') + '" data-topic="' + x.key + '">' + x.label + '</button>').join("");
+      if (!TAROT_DB && !TAROT_DB_LOADING && !TAROT_DB_ERROR) loadTarotDB().then(() => render());
       const rd = tarotReading(t.card, t.reversed, ST.tarotTopic);
       const sec = (label, text) => '<div class="tr-sec"><span class="tr-label">' + label + '</span>' + esc(text) + '</div>';
       const fortune = '<div class="lucky-nav" style="margin-top:16px">' + chips + '</div>' +
         '<div class="tarot-fortune"><div class="fortune-label">' + IC.sparkles() + ' 今日解牌 · ' + topicLabel + '</div>' +
         (rd ? sec("牌義", rd.core) + sec(topicLabel, rd.s) + sec("建議", rd.do) + sec("留意", rd.avoid)
-            : '<div class="hint">解牌資料載入中…連不上網路時請稍後重新整理。</div>') + '</div>';
+            : (TAROT_DB_LOADING ? '<div class="hint">' + IC.spinner(11) + ' 解牌資料載入中…</div>' : '<div class="hint">解牌資料讀取失敗' + (TAROT_DB_ERROR ? '（' + esc(TAROT_DB_ERROR) + '）' : '') + '。 <button class="lucky-btn" id="tarot-db-retry">重新載入</button></div>')) + '</div>';
       let pf = '<div class="hint">收藏裡還沒有適合的香水。</div>';
       if (p) {
         const orig = p.name && p.name !== p.nameZh ? '<span class="rl-orig">' + esc(p.name) + '</span>' : "";
@@ -1659,6 +1684,7 @@ function bind() {
     else if (ST.tab === "tarot" && !ST.tarot && !ST.tarotLoading) { drawTarot(false); return; }
     render();
   });
+  const tdr = document.getElementById("tarot-db-retry"); if (tdr) tdr.onclick = () => { TAROT_DB_ERROR = ""; loadTarotDB().then(() => render()); render(); };
   document.querySelectorAll("[data-topic]").forEach((b) => b.onclick = () => {
     ST.tarotTopic = b.getAttribute("data-topic"); saveTarotToday(); render();
   });
@@ -1699,6 +1725,8 @@ function bind() {
   applyTheme();
   const savedTarot = raw.find((x) => x.id === "tarot_today");
   if (savedTarot && savedTarot.value) ST.tarotSaved = savedTarot.value;
+  const cachedTarot = raw.find((x) => x.id === "tarot_db");
+  if (cachedTarot && cachedTarot.v === TAROT_DB_VERSION && cachedTarot.value && cachedTarot.value["The Fool"]) TAROT_DB = cachedTarot.value;   // 存在裝置上的解牌資料，離線也能看
   const savedAstro = raw.find((x) => x.id === "astro_today");
   if (savedAstro && savedAstro.value) ST.astroSaved = savedAstro.value;
   const tomb = raw.find((x) => x.id === "deleted_keys");
